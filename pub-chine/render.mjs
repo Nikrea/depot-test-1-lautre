@@ -75,7 +75,7 @@ if (mode === 'still') {
     for (let j = 0; j < jobs; j++) {
       kids.push(new Promise((res, rej) => {
         const c = spawn(process.execPath, [fileURLToPath(import.meta.url), 'frames', '--from', String(from), '--to', String(to),
-          '--w', String(W), '--h', String(H), '--out', out, '--stride', String(jobs), '--offset', String(j)], { stdio: 'inherit' });
+          '--w', String(W), '--h', String(H), '--out', out, '--stride', String(jobs), '--offset', String(j), ...(argv.includes('--force') ? ['--force'] : [])], { stdio: 'inherit' });
         c.on('exit', (code) => (code === 0 ? res() : rej(new Error('job ' + j + ' code ' + code))));
       }));
     }

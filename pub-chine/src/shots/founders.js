@@ -142,9 +142,9 @@ export function build(ctx) {
 
   // ---------------------------------------------------------------- typographie
   const title = overlay.add('fTitle', `<div class="display white" style="font-size:170px;text-shadow:0 0 28px rgba(255,61,154,0.85),0 0 6px rgba(255,255,255,0.6)">${Overlay.letters('NIK & ODYO', 'ch f')}</div>
-     <div class="cond" style="font-size:30px;letter-spacing:0.32em;color:#29F0E4;margin-top:12px"><span class="fs">FONDATEURS · CREATOR IS THE NEW ATHLETE</span></div>`);
-  const l1 = overlay.add('fL1', `<div class="body white" style="font-size:40px;font-weight:600">Créateurs, entrepreneurs, sur le terrain en Chine.</div>`);
-  const l2 = overlay.add('fL2', `<div class="display white" style="font-size:84px">Ils ont tracé la voie. <span style="color:#FF3D9A">À toi de courir.</span></div>`);
+     <div class="cond" style="font-size:30px;letter-spacing:0.32em;color:#29F0E4;margin-top:12px;text-shadow:0 2px 10px rgba(5,6,20,0.95),0 0 3px rgba(5,6,20,0.9)"><span class="fs">FONDATEURS · CREATOR IS THE NEW ATHLETE</span></div>`);
+  const l1 = overlay.add('fL1', `<div class="body white" style="font-size:40px;font-weight:600;padding:10px 22px;border-radius:14px;background:rgba(8,10,30,0.72)">Créateurs, entrepreneurs, sur le terrain en Chine.</div>`);
+  const l2 = overlay.add('fL2', `<div class="display white" style="font-size:84px;text-shadow:0 4px 18px rgba(5,6,20,0.9)">Ils ont tracé la voie. <span style="color:#FF3D9A">À toi de courir.</span></div>`);
 
   const F = T.founders;
   function update(t) {
