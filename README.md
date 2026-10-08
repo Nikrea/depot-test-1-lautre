@@ -54,7 +54,11 @@ python3 intro/render.py --res 540 --times 1.2,5.1,7.9   # planche d'aperçu rapi
 
 ---
 
-## Autre projet du dépôt
+## Autres projets du dépôt
 
 [`pub-chine/`](pub-chine/README.md) — *Creator is the new athlete* : pub 3D isométrique de 62 s sur la Chine,
 eldorado des créateurs, pour la formation de Nik & Odyo.
+
+[`le-dernier-selfie/`](le-dernier-selfie/README.md) — *Le dernier selfie* : 35 s d'animation façon stop-motion
+réaliste tirées d'une seule image. Dix personnes aux yeux blancs se lèvent une à une et quittent le cadre
+d'un selfie, jusqu'au canapé vide.

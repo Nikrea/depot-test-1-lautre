@@ -1,0 +1,7 @@
+-r requirements.txt
+torch>=2.3
+transformers>=4.45
+diffusers>=0.30
+accelerate
+safetensors
+scikit-image>=0.22

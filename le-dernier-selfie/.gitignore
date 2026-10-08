@@ -1,0 +1,4 @@
+output/preview/
+output/*_muet.mp4
+output/_*.wav
+__pycache__/
