@@ -1,0 +1,4 @@
+__pycache__/
+assets/cache/
+output/frames_*/
+output/preview/
