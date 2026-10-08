@@ -51,3 +51,10 @@ python3 intro/render.py --res 540 --times 1.2,5.1,7.9   # planche d'aperçu rapi
 - `intro/assets.py` : extraction des formes depuis `assets/source/` (L, apostrophe, lettres, phrase + ordre d'écriture).
 - `intro/render.py` : la timeline (constantes en tête de fichier), la caméra, la lumière, le rendu image.
 - `intro/audio.py` : le sound design, calé automatiquement sur la timeline (l'instant exact où le pont cède est calculé).
+
+---
+
+## Autre projet du dépôt
+
+[`pub-chine/`](pub-chine/README.md) — *Creator is the new athlete* : pub 3D isométrique de 62 s sur la Chine,
+eldorado des créateurs, pour la formation de Nik & Odyo.

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Creator is the new athlete</title>
+<style>
+  @font-face { font-family: "Barlow Condensed"; src: url(assets/fonts/BarlowCondensed-BlackItalic.ttf); font-weight: 900; font-style: italic; }
+  @font-face { font-family: "Barlow Condensed"; src: url(assets/fonts/BarlowCondensed-ExtraBoldItalic.ttf); font-weight: 800; font-style: italic; }
+  @font-face { font-family: "Barlow Condensed"; src: url(assets/fonts/BarlowCondensed-Bold.ttf); font-weight: 700; font-style: normal; }
+  @font-face { font-family: "Barlow Condensed"; src: url(assets/fonts/BarlowCondensed-SemiBold.ttf); font-weight: 600; font-style: normal; }
+  @font-face { font-family: "Barlow Condensed"; src: url(assets/fonts/BarlowCondensed-Medium.ttf); font-weight: 500; font-style: normal; }
+  @font-face { font-family: "Inter"; src: url(assets/fonts/Inter-Regular.otf); font-weight: 400; }
+  @font-face { font-family: "Inter"; src: url(assets/fonts/Inter-Medium.otf); font-weight: 500; }
+  @font-face { font-family: "Inter"; src: url(assets/fonts/Inter-SemiBold.otf); font-weight: 600; }
+  @font-face { font-family: "Inter"; src: url(assets/fonts/Inter-Bold.otf); font-weight: 700; }
+  @font-face { font-family: "MaShan"; src: url(assets/fonts/MaShanZheng-sub.ttf); }
+
+  html, body { margin: 0; background: #000; overflow: hidden; }
+  #stage { position: relative; overflow: hidden; }
+  canvas { display: block; }
+  #ov { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; pointer-events: none; }
+  .ov { position: absolute; left: 0; top: 0; will-change: transform, opacity; white-space: nowrap; }
+  .ch, .wd { display: inline-block; }
+  .wd { overflow: hidden; vertical-align: top; padding: 0 0.04em; }
+  .wi { display: inline-block; }
+
+  .display { font-family: "Barlow Condensed"; font-weight: 900; font-style: italic; text-transform: uppercase; letter-spacing: 0.01em; line-height: 0.9; }
+  .cond { font-family: "Barlow Condensed"; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+  .body { font-family: "Inter"; font-weight: 500; }
+  .brush { font-family: "MaShan"; }
+  .ink { color: #1B1E2E; }
+  .red { color: #E2353B; }
+  .gold { color: #F4B63F; }
+  .white { color: #FBF7F2; }
+
+  .card { padding: 18px 24px 20px; border-radius: 18px; background: rgba(255, 252, 246, 0.86);
+          box-shadow: 0 18px 40px rgba(60, 30, 10, 0.18), inset 0 0 0 1.5px rgba(255,255,255,0.7); }
+  .card .num { font-family: "Barlow Condensed"; font-weight: 900; font-style: italic; font-size: 76px; line-height: 0.95; color: #E2353B; }
+  .card .lbl { font-family: "Inter"; font-weight: 600; font-size: 21px; color: #1B1E2E; line-height: 1.25; white-space: normal; width: 300px; margin-top: 4px; }
+  .card .tag { font-family: "Barlow Condensed"; font-weight: 700; font-size: 16px; letter-spacing: 0.16em; color: #B3202A; text-transform: uppercase; }
+  .card .src { font-family: "Inter"; font-weight: 500; font-size: 14px; color: rgba(27,30,46,0.5); margin-top: 8px; }
+  .dot { width: 18px; height: 18px; border-radius: 50%; background: #E2353B; box-shadow: 0 0 0 6px rgba(226,53,59,0.25); }
+  .pill { font-family: "Barlow Condensed"; font-weight: 700; font-size: 22px; letter-spacing: 0.18em; text-transform: uppercase;
+          padding: 8px 18px 7px; border-radius: 999px; }
+  .seal { width: 150px; height: 150px; background: #D9262E; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+          box-shadow: inset 0 0 0 7px #D9262E, inset 0 0 0 10px #FBF0E4; }
+  .seal span { font-family: "MaShan"; font-size: 118px; color: #FBF0E4; line-height: 1; transform: translateY(4px); }
+</style>
+<script type="importmap">
+{ "imports": { "three": "./node_modules/three/build/three.module.js", "three/addons/": "./node_modules/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div id="stage"><div id="ov"></div></div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

@@ -2,3 +2,7 @@ __pycache__/
 assets/cache/
 output/frames_*/
 output/preview/
+pub-chine/node_modules/
+pub-chine/output/frames*/
+pub-chine/output/preview*/
+pub-chine/output/stills/
