@@ -1,5 +1,6 @@
 """Outils partagés par tous les scripts du pipeline de dérush."""
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -22,6 +23,20 @@ toutes tres bien alors donc voila comme quand aussi encore deja ici la-bas puis 
 cest quil quelle dun dune lui sans sous entre vers chez rien jamais toujours peut
 euh heu hum bon ben bah ouais oui non
 """.split())
+
+
+def resolve_env_defaults():
+    """Chemins standard de Resolve sous Windows si les variables ne sont pas (encore) posées."""
+    if os.name != "nt":
+        return
+    os.environ.setdefault("RESOLVE_SCRIPT_API", os.path.join(
+        os.environ.get("PROGRAMDATA", r"C:\ProgramData"),
+        r"Blackmagic Design\DaVinci Resolve\Support\Developer\Scripting"))
+    os.environ.setdefault("RESOLVE_SCRIPT_LIB",
+                          r"C:\Program Files\Blackmagic Design\DaVinci Resolve\fusionscript.dll")
+    mod = os.path.join(os.environ["RESOLVE_SCRIPT_API"], "Modules")
+    if mod not in sys.path:
+        sys.path.append(mod)
 
 
 def need(tool):

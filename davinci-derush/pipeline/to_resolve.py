@@ -17,10 +17,11 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import load_json, project_paths  # noqa: E402
+from common import load_json, project_paths, resolve_env_defaults  # noqa: E402
 
 
 def connect():
+    resolve_env_defaults()
     try:
         import DaVinciResolveScript as dvr
     except ImportError:

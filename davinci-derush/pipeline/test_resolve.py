@@ -1,6 +1,12 @@
 """Vérifie que Python arrive à parler à DaVinci Resolve (à lancer Resolve ouvert)."""
 import os
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from common import resolve_env_defaults  # noqa: E402
+
+resolve_env_defaults()
 
 api = os.environ.get("RESOLVE_SCRIPT_API")
 lib = os.environ.get("RESOLVE_SCRIPT_LIB")
