@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python pipeline/*)",
+      "Bash(python pipeline\\*)",
+      "Bash(python run_all.py *)",
+      "Bash(ffprobe *)",
+      "PowerShell(python pipeline/*)",
+      "PowerShell(python pipeline\\*)",
+      "PowerShell(python run_all.py *)"
+    ]
+  }
+}

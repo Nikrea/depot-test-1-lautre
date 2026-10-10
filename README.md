@@ -62,3 +62,8 @@ eldorado des créateurs, pour la formation de Nik & Odyo.
 [`le-dernier-selfie/`](le-dernier-selfie/README.md) — *Le dernier selfie* : 35 s d'animation façon stop-motion
 réaliste tirées d'une seule image. Dix personnes aux yeux blancs se lèvent une à une et quittent le cadre
 d'un selfie, jusqu'au canapé vide.
+
+## Outil de montage : dérush + B-rolls dans DaVinci Resolve
+
+Le dossier [`davinci-derush/`](davinci-derush/README.md) contient le pipeline qui dérushe ta voix
+(blancs, « euh », prises ratées) et cale tes B-rolls dans DaVinci Resolve Studio, piloté par Claude Code.
