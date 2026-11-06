@@ -16,6 +16,18 @@ Deux autres formats, pour les téléphones dont l'app n'affiche pas les pages HT
   pour les lire en grand).
 - **`livre.pdf`** : s'ouvre partout, fiches à l'endroit, sommaire dans les signets.
 
+## Version recomposée : `livre-recompose.pdf`
+
+Le livret entièrement refait : texte retapé (plus de photo de papier), photos des plats détourées et retouchées,
+mise en page neuve en A4. 16 pages : couverture, sommaire, puis 7 recettes sur deux pages chacune
+(photo + ingrédients, puis pas à pas avec astuces, valeurs nutritionnelles et allergènes).
+
+- Le texte des recettes est dans `recettes/NNN.json` (une fiche par recette, facile à corriger).
+- `outils/photos_plats.py` extrait et retouche les photos des plats → `recompose/photos/`.
+- `outils/recomposer.py` compose les pages (styles : `outils/gabarit_livre.css`) → `recompose/livre-recompose.html`.
+- `node outils/imprimer.js` en fait le PDF (texte vectoriel, polices intégrées : Bricolage Grotesque,
+  Source Serif 4, Archivo Black, toutes sous licence libre SIL OFL).
+
 ## Comment il est fabriqué
 
 | Étape | Script | Ce qu'il fait |

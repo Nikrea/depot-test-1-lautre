@@ -1,0 +1,52 @@
+{
+  "numero": 204,
+  "titre": "Poulet à la crème de poireau & muscade",
+  "sous_titre": "avec du gouda, du riz & du persil",
+  "tags": ["Rapide"],
+  "temps": "25 – 35 min",
+  "note": "Notre poulet est 100 % origine France*",
+  "ustensiles": "Sauteuse avec couvercle, râpe, casserole avec couvercle, passoire",
+  "ingredients": [
+    ["Riz", "450 g", false],
+    ["Oignon", "2 pièce(s)", false],
+    ["Poireau", "4 pièce(s)", true],
+    ["Filet de poulet", "6 pièce(s)", true],
+    ["Gousse d’ail", "4 pièce(s)", false],
+    ["Persil", "1½ sachet(s)", true],
+    ["Crème liquide", "2 paquet(s)", true],
+    ["Gouda râpé", "2 sachet(s)", true],
+    ["Noix de muscade", "2 pincée(s)", false]
+  ],
+  "a_ajouter": [
+    ["Huile d’olive", "3 cs"],
+    ["Beurre", "3 cs"],
+    ["Poivre et sel", "selon votre goût"]
+  ],
+  "nutrition": [
+    ["Énergie (kJ/kcal)", "3268 / 781", "754 / 180"],
+    ["Lipides total (g)", "35", "8"],
+    ["dont saturés (g)", "19,2", "4,4"],
+    ["Glucides (g)", "76", "17"],
+    ["dont sucres (g)", "8,1", "1,9"],
+    ["Fibres (g)", "4", "1"],
+    ["Protéines (g)", "46", "11"],
+    ["Sel (g)", "0,8", "0,2"]
+  ],
+  "etapes": [
+    {"titre": "À vos couteaux !", "points": [
+      "Veillez à bien respecter les quantités indiquées à gauche pour préparer votre recette !",
+      "Portez une casserole d’eau salée à ébullition pour le **riz**.",
+      "Ciselez finement l’**oignon**. Coupez le **poireau** en deux dans l’épaisseur, lavez-le bien, puis coupez-le en fines demi-lunes.",
+      "Faites cuire le **riz** 12-14 min dans la casserole, ou jusqu’à ce qu’il soit tendre. Égouttez-le et réservez-le à couvert."]},
+    {"titre": "Allumer le feu", "points": [
+      "Coupez le **poulet** en dés de 2 cm (voir l’astuce).",
+      "Faites chauffer un filet d’huile d’olive dans une sauteuse à feu moyen-vif. Faites-y dorer le **poulet** 3-4 min sur tous les côtés : il ne doit pas encore être totalement cuit. Salez et poivrez. Réservez-le hors de la sauteuse et conservez celle-ci pour l’étape suivante."],
+     "astuce": ["L’astuce du chef", "Une odeur à l’ouverture du poulet est normale : elle est liée à l’emballage qui préserve sa qualité. Laissez-le s’aérer un peu."]},
+    {"titre": "Au tour du poireau", "points": [
+      "Remettez la sauteuse à feu moyen-vif et faites-y fondre une noix de beurre. Ajoutez-y l’**oignon**, le **poireau**, salez et poivrez. Baissez le feu à moyen, couvrez et faites cuire 8-10 min de plus, ou jusqu’à ce qu’il soit fondant.",
+      "Pendant ce temps, ciselez l’**ail** et le **persil** séparément."]},
+    {"titre": "Chaud devant !", "points": [
+      "Une fois l’**oignon** et le **poireau** cuits et fondants, retirez le couvercle. Incorporez le **poulet**, l’**ail**, la **crème** et la moitié du **gouda**. Râpez un peu de **muscade** par-dessus (selon votre goût). Mélangez et laissez réduire 5 min à feu doux, ou jusqu’à ce que le **poulet** soit cuit à cœur.",
+      "Servez le **riz** dans les assiettes et versez le **poulet** et sa crème au **poireau** par-dessus. Saupoudrez de **persil** et du reste de **gouda** râpé."]}
+  ]
+}

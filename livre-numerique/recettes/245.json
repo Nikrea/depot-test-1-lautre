@@ -1,0 +1,159 @@
+{
+  "numero": 245,
+  "titre": "Burger de bœuf, chutney d’oignon & gouda",
+  "sous_titre": "avec des frites au four & du paprika fumé",
+  "tags": [
+    "Compatible Air Fryer",
+    "15 min de prépa",
+    "Épicé"
+  ],
+  "temps": "45 – 55 min",
+  "note": "Notre bœuf est 100 % origine France*",
+  "ustensiles": "Plaque de cuisson recouverte de papier sulfurisé, bol, essuie-tout, éplucheur, poêle",
+  "ingredients": [
+    [
+      "Pommes de terre",
+      "1500 g",
+      false
+    ],
+    [
+      "Oignon",
+      "4 pièce(s)",
+      false
+    ],
+    [
+      "Gousse d’ail",
+      "2 pièce(s)",
+      false
+    ],
+    [
+      "Viande hachée au bœuf",
+      "2 paquet(s)",
+      true
+    ],
+    [
+      "Paprika fumé en poudre",
+      "1½ sachet(s)",
+      false
+    ],
+    [
+      "Gouda râpé",
+      "2 sachet(s)",
+      true
+    ],
+    [
+      "Pain burger",
+      "6 pièce(s)",
+      false
+    ],
+    [
+      "Chutney piquant aux oignons",
+      "120 g",
+      true
+    ]
+  ],
+  "a_ajouter": [
+    [
+      "Huile d’olive",
+      "4 cs"
+    ],
+    [
+      "Beurre",
+      "3 cs"
+    ],
+    [
+      "Moutarde",
+      "3 cc"
+    ],
+    [
+      "Poivre et sel",
+      "selon votre goût"
+    ]
+  ],
+  "nutrition": [
+    [
+      "Énergie (kJ/kcal)",
+      "4163 / 995",
+      "780 / 186"
+    ],
+    [
+      "Lipides total (g)",
+      "47",
+      "9"
+    ],
+    [
+      "dont saturés (g)",
+      "21,5",
+      "4,0"
+    ],
+    [
+      "Glucides (g)",
+      "105",
+      "20"
+    ],
+    [
+      "dont sucres (g)",
+      "18,9",
+      "3,5"
+    ],
+    [
+      "Fibres (g)",
+      "9",
+      "2"
+    ],
+    [
+      "Protéines (g)",
+      "40",
+      "8"
+    ],
+    [
+      "Sel (g)",
+      "3,2",
+      "0,6"
+    ]
+  ],
+  "etapes": [
+    {
+      "titre": "Comment avoir la frite !",
+      "points": [
+        "Veillez à bien respecter les quantités indiquées à gauche pour préparer votre recette !",
+        "Préchauffez le four à 220 °C (200 °C chaleur tournante).",
+        "Lavez les **pommes de terre** et coupez-les en frites de 1 cm d’épaisseur. Épongez-les avec de l’essuie-tout. Sur une plaque recouverte de papier sulfurisé, mélangez-les avec un filet d’huile d’olive, du sel et du poivre (voir l’astuce).",
+        "Enfournez-les 25-35 min. Remuez à mi-cuisson."
+      ],
+      "astuce": [
+        "Make it Airfryer",
+        "Placez les frites dans le panier de cuisson avec un filet d’huile d’olive, du sel et du poivre. Faites cuire 18-22 min à 180 °C, en secouant le panier toutes les 5-6 min pour une cuisson uniforme et bien dorée."
+      ]
+    },
+    {
+      "titre": "Chaud devant !",
+      "points": [
+        "Coupez l’**oignon** en demi-lunes. Émincez l’**ail**.",
+        "Dans un bol, mélangez avec vos mains le **bœuf** avec ¼ sachet de **paprika fumé** par personne, l’**ail**, du sel et du poivre. Pressez-le et façonnez-le en steaks (un par personne) de 2 cm d’épaisseur.",
+        "Faites fondre le beurre dans une poêle à feu moyen-vif. Faites-y cuire les **oignons** ainsi que les steaks 2-4 min de chaque côté, ou jusqu’à ce que la viande soit cuite à cœur (voir l’astuce).",
+        "Répartissez le **gouda** sur les steaks, ajoutez 1 cs d’eau à la poêle, couvrez et laissez le fromage fondre 1 min."
+      ],
+      "astuce": [
+        "L’astuce du chef",
+        "Adaptez la cuisson à votre goût : réduisez ou prolongez le temps de cuisson pour une viande saignante ou bien cuite."
+      ]
+    },
+    {
+      "titre": "Un tour au four",
+      "points": [
+        "Lorsqu’il reste environ 5 min de cuisson aux frites, enfournez les **pains burger** à côté.",
+        "À la fin de la cuisson, coupez les **pains burger** en deux.",
+        "Étalez un peu de moutarde sur la base, puis du **chutney d’oignons** (ça pique ! Dosez-le selon votre goût).",
+        "Déposez la viande sur la partie basse du **pain**, ajoutez l’**oignon** poêlé et refermez le burger."
+      ]
+    },
+    {
+      "titre": "Showtime",
+      "points": [
+        "Servez les burgers dans les assiettes.",
+        "Accompagnez-les des frites."
+      ]
+    }
+  ]
+}

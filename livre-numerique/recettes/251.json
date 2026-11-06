@@ -1,0 +1,58 @@
+{
+  "numero": 251,
+  "titre": "La Fraîche : poulet, nouilles & sauce satay",
+  "sous_titre": "garnie de graines de sésame & coriandre",
+  "tags": ["Riche en protéines", "Rapide", "Épicé"],
+  "temps": "25 – 35 min",
+  "note": "Notre poulet est 100 % origine France*",
+  "ustensiles": "Râpe, casserole, éplucheur, saladier, passoire, poêle",
+  "ingredients": [
+    ["Gousse d’ail", "2 pièce(s)", false],
+    ["Gingembre frais", "2 cm", true],
+    ["Piment", "½ pièce(s)", true],
+    ["Coriandre", "1½ sachet(s)", true],
+    ["Carotte", "3 pièce(s)", true],
+    ["(Mini) Concombre", "4 Mini", true],
+    ["Blanc de poulet", "2 paquet(s)", true],
+    ["Sauce soja", "1½ sachet(s)", false],
+    ["Nouilles de blé", "300 g", false],
+    ["Beurre de cacahuètes", "3 pot(s)", false],
+    ["Huile de sésame", "1½ sachet(s)", false],
+    ["Graines de sésame", "1½ sachet(s)", false]
+  ],
+  "a_ajouter": [
+    ["Huile de tournesol", "4 cs"],
+    ["Vinaigre balsamique blanc / riz", "6 cc"],
+    ["Cassonade", "6 cc"],
+    ["Poivre et sel", "selon votre goût"]
+  ],
+  "nutrition": [
+    ["Énergie (kJ/kcal)", "2611 / 624", "619 / 148"],
+    ["Lipides total (g)", "31", "7"],
+    ["dont saturés (g)", "6,0", "1,4"],
+    ["Glucides (g)", "56", "13"],
+    ["dont sucres (g)", "14,0", "3,3"],
+    ["Fibres (g)", "14", "3"],
+    ["Protéines (g)", "35", "8"],
+    ["Sel (g)", "2,6", "0,6"]
+  ],
+  "etapes": [
+    {"titre": "Éplucheur en action", "points": [
+      "Veillez à bien respecter les quantités indiquées à gauche pour préparer votre recette !",
+      "Portez une casserole d’eau salée à ébullition pour les nouilles.",
+      "Râpez l’**ail** et le **gingembre**, puis épépinez et ciselez le **piment** (ça pique ! Dosez-les selon votre goût). Ciselez la **coriandre**. Épluchez et taillez la **carotte** en rubans avec un éplucheur (vous pouvez aussi la râper si vous le préférez). Coupez le **concombre** en deux dans l’épaisseur, retirez-en les graines avec une cuillère, puis coupez-le en demi-lunes.",
+      "Recoupez le **poulet** en plus petits dés si nécessaire."]},
+    {"titre": "Allumer le feu", "points": [
+      "Faites chauffer une poêle à feu moyen-vif avec un filet d’huile de tournesol. Faites-y revenir le **poulet**, le **piment**, la moitié de l’**ail** et du **gingembre** 3-5 min.",
+      "Poivrez et ajoutez la moitié de la **sauce soja**. Faites revenir 2-3 min de plus, ou jusqu’à ce que le **poulet** soit opaque et cuit à cœur."],
+     "astuce": ["L’astuce du chef", "Une odeur à l’ouverture du poulet est normale : elle est liée à l’emballage qui préserve sa qualité. Laissez-le s’aérer un peu."]},
+    {"titre": "Sauce qui peut !", "points": [
+      "Faites cuire 50 g de **nouilles** par personne 2-3 min dans la casserole. Égouttez-les et rincez-les à l’eau froide pour qu’elles ne collent pas entre elles.",
+      "Dans un saladier, mélangez le **beurre de cacahuètes** (selon votre goût) avec un généreux filet d’huile de tournesol, l’**huile de sésame**, le vinaigre balsamique blanc (ou de riz) et la cassonade. Ajoutez le reste d’**ail**, de **gingembre** et de **sauce soja** et un filet d’eau pour fluidifier la sauce. Mélangez."],
+     "astuce": ["L’astuce du chef", "Vous pouvez aussi laisser les nouilles tiédir si vous préférez manger ce plat chaud."]},
+    {"titre": "Miam, miam !", "points": [
+      "Ajoutez les **nouilles** à la sauce avec la **carotte**, le **concombre** et la moitié des **graines de sésame**. Salez, poivrez et mélangez délicatement.",
+      "Servez la salade dans des bols ou des assiettes creuses. Placez le **poulet** par-dessus.",
+      "Saupoudrez avec la **coriandre** et le reste de **graines de sésame**."]}
+  ]
+}

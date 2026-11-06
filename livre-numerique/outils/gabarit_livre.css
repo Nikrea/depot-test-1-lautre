@@ -1,0 +1,120 @@
+/* Livret recomposé — pages A4, texte vectoriel.
+   Mise en page : une recette = une double page (photo + ingrédients, puis pas à pas). */
+@font-face { font-family: "Bricolage"; src: url("polices/BricolageGrotesque.woff2") format("woff2"); font-weight: 200 800; }
+@font-face { font-family: "Source Serif"; src: url("polices/SourceSerif4.woff2") format("woff2"); font-weight: 200 900; }
+@font-face { font-family: "Source Serif"; src: url("polices/SourceSerif4-Italic.woff2") format("woff2"); font-weight: 200 900; font-style: italic; }
+@font-face { font-family: "Archivo Black"; src: url("polices/ArchivoBlack.woff2") format("woff2"); }
+
+:root {
+  --papier: #fbfaf6;
+  --encre: #1c2620;
+  --doux: #5c675f;
+  --vert: #2c5a40;        /* le vert de la couverture */
+  --vert-nuit: #1f3d2c;
+  --citron: #a9c83c;      /* l'accent, utilisé avec parcimonie */
+  --herbe: #eef2e2;       /* fond des encadrés */
+  --trait: #dde2d4;
+  --titre: "Bricolage", "Inter", system-ui, sans-serif;
+  --texte: "Source Serif", Georgia, serif;
+  --marge: 15mm;
+}
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #8a8f88; }
+body { font-family: var(--texte); color: var(--encre); -webkit-print-color-adjust: exact; print-color-adjust: exact;
+       font-kerning: normal; font-variant-numeric: lining-nums; }
+.page { width: 210mm; height: 297mm; position: relative; overflow: hidden; background: var(--papier);
+        page-break-after: always; break-after: page; }
+.page + .page { margin-top: 0; }
+@media screen { .page { margin: 0 auto 8mm; box-shadow: 0 2mm 8mm rgba(0,0,0,.25); } }
+strong { font-weight: 650; }
+.frac { font-feature-settings: "frac" 1; }
+
+/* ---------- pied de page ---------- */
+.pied { position: absolute; left: var(--marge); right: var(--marge); bottom: 8.5mm; display: flex; justify-content: space-between;
+        font: 500 7.6pt/1 var(--titre); letter-spacing: .06em; text-transform: uppercase; color: var(--doux); }
+.pied b { color: var(--encre); font-weight: 700; }
+
+/* ---------- couverture ---------- */
+.couverture { background: var(--vert-nuit); color: #f3f0e6; }
+.couverture .haut { padding: 22mm var(--marge) 0; }
+.couverture .eyebrow { display: inline-block; font: 700 9pt/1 var(--titre); letter-spacing: .14em; text-transform: uppercase;
+                       color: var(--vert-nuit); background: var(--citron); padding: 2.2mm 3.2mm; border-radius: 1.2mm; }
+.couverture h1 { font-family: "Archivo Black", var(--titre); font-weight: 400; font-size: 58pt; line-height: .9; letter-spacing: -.01em;
+                 margin: 9mm 0 0; text-transform: uppercase; }
+.couverture h1 span { display: block; color: var(--citron); }
+.couverture .accroche { font: italic 400 15pt/1.3 var(--texte); margin: 7mm 0 0; color: #dfe6d6; max-width: 140mm; }
+.couverture .infos { display: flex; gap: 8mm; margin-top: 9mm; font: 600 8.5pt/1.3 var(--titre); letter-spacing: .08em; text-transform: uppercase; color: #b9c7b3; }
+.couverture .infos b { display: block; font-size: 15pt; letter-spacing: 0; text-transform: none; color: #f3f0e6; font-weight: 700; }
+.mosaique { position: absolute; left: 0; right: 0; bottom: 0; height: 140mm; display: grid; gap: 1.6mm; padding: 1.6mm;
+            grid-template-columns: repeat(12, 1fr); grid-template-rows: 1fr 1fr; background: var(--vert-nuit); }
+.mosaique figure { margin: 0; overflow: hidden; border-radius: 1mm; }
+.mosaique figure:nth-child(-n+4) { grid-column: span 3; }
+.mosaique figure:nth-child(n+5) { grid-column: span 4; }
+.mosaique img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ---------- sommaire ---------- */
+.sommaire { padding: 17mm var(--marge) 0; }
+.kicker { font: 700 8.5pt/1 var(--titre); letter-spacing: .14em; text-transform: uppercase; color: var(--vert); }
+.sommaire h2 { font: 800 34pt/1 var(--titre); letter-spacing: -.02em; margin: 3mm 0 4mm; }
+.sommaire .intro { font: 400 10.5pt/1.5 var(--texte); color: var(--doux); max-width: 150mm; margin: 0 0 6mm; }
+.entree { display: grid; grid-template-columns: 40mm 1fr auto; gap: 6mm; align-items: center; padding: 2.8mm 0; border-top: .3mm solid var(--trait); }
+.entree:last-of-type { border-bottom: .3mm solid var(--trait); }
+.entree .vignette { height: 24mm; border-radius: 1.2mm; overflow: hidden; }
+.entree .vignette img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.entree .meta { font: 600 7.8pt/1 var(--titre); letter-spacing: .1em; text-transform: uppercase; color: var(--vert); }
+.entree h3 { font: 700 14.5pt/1.15 var(--titre); letter-spacing: -.01em; margin: 1.8mm 0 1mm; text-wrap: balance; }
+.entree p { font: italic 400 10pt/1.3 var(--texte); color: var(--doux); margin: 0; }
+.entree .p { font: 800 20pt/1 var(--titre); color: var(--vert); font-variant-numeric: tabular-nums; min-width: 12mm; text-align: right; }
+.sommaire .note { font: 400 8.4pt/1.45 var(--texte); color: var(--doux); margin-top: 5mm; max-width: 165mm; }
+
+/* ---------- recette : ouverture ---------- */
+.ouverture .photo { height: 128mm; overflow: hidden; }
+.ouverture.longue .photo { height: 104mm; }
+.ouverture .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ouverture .corps { padding: 8mm var(--marge) 0; }
+.etiquettes { display: flex; flex-wrap: wrap; align-items: center; gap: 2.2mm; }
+.etiquettes .num { font: 800 9pt/1 var(--titre); letter-spacing: .12em; text-transform: uppercase; color: var(--vert); margin-right: 1.5mm; }
+.pastille { font: 600 7.8pt/1 var(--titre); letter-spacing: .04em; padding: 1.5mm 2.4mm; border-radius: 5mm; background: var(--herbe); color: var(--vert-nuit); }
+.pastille.temps { background: var(--vert); color: #fff; }
+.pastille.epice { background: #f6e3dc; color: #8a3a22; }
+.ouverture h1 { font: 800 27pt/1.04 var(--titre); letter-spacing: -.02em; margin: 4.5mm 0 1.8mm; text-wrap: balance; max-width: 175mm; }
+.ouverture .sous { font: italic 400 13pt/1.3 var(--texte); color: var(--doux); margin: 0; }
+.colonnes { display: grid; grid-template-columns: 1.12fr 1fr; gap: 10mm; margin-top: 7mm; }
+h4 { font: 700 8.6pt/1 var(--titre); letter-spacing: .12em; text-transform: uppercase; color: var(--vert); margin: 0 0 2.6mm;
+     display: flex; align-items: baseline; justify-content: space-between; gap: 3mm; }
+h4 small { font: italic 400 9pt/1 var(--texte); letter-spacing: 0; text-transform: none; color: var(--doux); }
+.liste { list-style: none; margin: 0; padding: 0; }
+.liste li { display: flex; align-items: baseline; gap: 2mm; font: 400 10.4pt/1.25 var(--texte); padding: 1.45mm 0; border-bottom: .25mm solid var(--trait); }
+.liste li .n { flex: 1; min-width: 0; }
+.liste li .q { font: 500 9.4pt/1 var(--titre); color: var(--doux); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.liste li sup { color: var(--vert); font: 700 7pt/1 var(--titre); margin-left: .4mm; }
+.frais { font: italic 400 8.4pt/1.3 var(--texte); color: var(--doux); margin: 2mm 0 0; }
+.bloc + .bloc { margin-top: 6.5mm; }
+.ustensiles { font: 400 10.2pt/1.45 var(--texte); margin: 0; }
+.note-bas { position: absolute; left: var(--marge); right: var(--marge); bottom: 15mm; font: italic 400 8.2pt/1.4 var(--texte); color: var(--doux);
+            border-top: .3mm solid var(--trait); padding-top: 2.5mm; }
+
+/* ---------- recette : pas à pas ---------- */
+.etapes-page { padding: 15mm var(--marge) 0; }
+.etapes-page .tete { display: flex; justify-content: space-between; align-items: flex-end; gap: 8mm; padding-bottom: 4mm; border-bottom: .5mm solid var(--encre); }
+.etapes-page .tete h2 { font: 800 24pt/1 var(--titre); letter-spacing: -.02em; margin: 2mm 0 0; }
+.etapes-page .tete .rappel { font: italic 400 10pt/1.3 var(--texte); color: var(--doux); text-align: right; max-width: 92mm; text-wrap: balance; }
+.etapes { columns: 2; column-gap: 9mm; margin-top: 6mm; font-size: var(--taille, 10.2pt); }
+.etape { break-inside: avoid; margin: 0 0 5.2mm; display: grid; grid-template-columns: 10mm 1fr; column-gap: 2mm; }
+.etape .chiffre { font: 800 23pt/.9 var(--titre); color: var(--vert); font-variant-numeric: tabular-nums; }
+.etape h3 { font: 700 12.4pt/1.15 var(--titre); letter-spacing: -.01em; margin: .6mm 0 2mm; }
+.etape ul { margin: 0; padding: 0; list-style: none; grid-column: 2; }
+.etape li { position: relative; padding-left: 4mm; font-family: var(--texte); line-height: 1.42; margin-bottom: 1.4mm; hyphens: auto; }
+.etape li::before { content: ""; position: absolute; left: .4mm; top: .62em; width: 1.5mm; height: 1.5mm; border-radius: 50%; background: var(--citron); }
+.astuce { grid-column: 2; margin-top: 1.6mm; padding: 2.6mm 3.2mm; background: var(--herbe); border-radius: 1.4mm; font: 400 .93em/1.4 var(--texte); }
+.astuce b { display: block; font: 700 7.4pt/1 var(--titre); letter-spacing: .12em; text-transform: uppercase; color: var(--vert); margin-bottom: 1.4mm; }
+.reperes { position: absolute; left: var(--marge); right: var(--marge); bottom: 15mm; display: grid; grid-template-columns: 1.15fr 1fr; gap: 9mm;
+           padding-top: 4mm; border-top: .3mm solid var(--trait); }
+.nutri { width: 100%; border-collapse: collapse; font: 400 8.6pt/1.2 var(--texte); font-variant-numeric: tabular-nums; }
+.nutri th { font: 600 7.2pt/1 var(--titre); letter-spacing: .08em; text-transform: uppercase; color: var(--doux); text-align: right; padding: 0 0 1.4mm; }
+.nutri td { padding: .9mm 0; border-bottom: .2mm solid var(--trait); }
+.nutri td + td { text-align: right; width: 22mm; }
+.nutri tr.sous td:first-child { padding-left: 3mm; color: var(--doux); }
+.allergenes p { font: 400 8.4pt/1.45 var(--texte); color: var(--doux); margin: 0; }
+.allergenes .fin { margin-top: 4mm; font: 800 15pt/1 var(--titre); color: var(--vert); letter-spacing: -.01em; }

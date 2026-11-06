@@ -1,0 +1,53 @@
+{
+  "numero": 205,
+  "titre": "Salade minute de lentilles, comté AOP & jambon",
+  "sous_titre": "avec du sarasson & de l’endive",
+  "tags": [],
+  "temps": "15 – 25 min",
+  "badge": "Sans nitrite",
+  "note": "Découvrez le plaisir de notre jambon de porc sans nitrite et d’origine France*",
+  "ustensiles": "Passoire, saladier, éplucheur",
+  "ingredients": [
+    ["Lentilles précuites", "3 paquet(s)", false],
+    ["Pomme", "3 pièce(s)", true],
+    ["Endive", "3 pièce(s)", true],
+    ["Comté AOP", "200 g", true],
+    ["Jambon blanc sans nitrite", "6 pièce(s)", true],
+    ["Sarasson aux herbes", "200 g", true],
+    ["Herbes de Provence", "2 sachet(s)", false],
+    ["Salade en sachet", "2 pièce(s)", true],
+    ["Noix concassées", "1½ sachet(s)", false]
+  ],
+  "a_ajouter": [
+    ["Huile d’olive", "3 cs"],
+    ["Moutarde", "6 cc"],
+    ["Poivre et sel", "selon votre goût"]
+  ],
+  "nutrition": [
+    ["Énergie (kJ/kcal)", "2481 / 593", "514 / 123"],
+    ["Lipides total (g)", "31", "6"],
+    ["dont saturés (g)", "11,2", "2,3"],
+    ["Glucides (g)", "41", "9"],
+    ["dont sucres (g)", "11,6", "2,4"],
+    ["Fibres (g)", "13", "3"],
+    ["Protéines (g)", "38", "8"],
+    ["Sel (g)", "3,7", "0,8"]
+  ],
+  "etapes": [
+    {"titre": "On s’y met !", "points": [
+      "Veillez à bien respecter les quantités indiquées à gauche pour préparer votre recette !",
+      "Égouttez les **lentilles** et rincez-les sous l’eau froide.",
+      "Épluchez et coupez la **pomme** en quartiers, ôtez-en le trognon, puis coupez les quartiers en fines tranches.",
+      "Coupez l’**endive** en deux dans l’épaisseur et ôtez la partie dure et amère de la base en y prélevant un cône. Coupez l’**endive** en fines demi-lunes."],
+     "astuce": ["L’astuce du chef", "Il se peut que les premières feuilles de vos endives soient légèrement abîmées ; pensez à les retirer avant de les consommer."]},
+    {"titre": "Vinaigrette en action", "points": [
+      "Coupez le **comté** et le **jambon** en dés de 1 cm.",
+      "Dans un saladier, mélangez le **sarasson** avec un filet d’huile d’olive et, par personne : 1 cc de moutarde, ⅓ sachet d’**herbes de Provence**, du sel et du poivre."]},
+    {"titre": "Mélange des saveurs", "points": [
+      "Dans le saladier, ajoutez les **lentilles**, la **pomme**, les **endives**, la **salade**, le **comté** et le **jambon**.",
+      "Mélangez bien."]},
+    {"titre": "Bon appétit !", "points": [
+      "Servez la salade automnale dans les assiettes creuses.",
+      "Garnissez avec les **noix**."]}
+  ]
+}

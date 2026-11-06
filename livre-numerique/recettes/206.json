@@ -1,0 +1,62 @@
+{
+  "numero": 206,
+  "titre": "Polpette des Pouilles : boulettes de bœuf",
+  "sous_titre": "avec de la purée persillée & une salade",
+  "tags": [],
+  "temps": "35 – 45 min",
+  "note": "Notre bœuf est 100 % origine France*",
+  "ustensiles": "Casserole avec couvercle, éplucheur, presse-purée, 2 saladiers, passoire, poêle",
+  "ingredients": [
+    ["Gousse d’ail", "2 pièce(s)", false],
+    ["Oignon", "3 pièce(s)", false],
+    ["Persil", "1½ sachet(s)", true],
+    ["Pommes de terre", "1500 g", false],
+    ["Fromage râpé à l’italienne", "4 sachet(s)", true],
+    ["Viande hachée au bœuf", "2 paquet(s)", true],
+    ["Chair de tomates", "1½ paquet(s)", false],
+    ["Salade en sachet", "2 pièce(s)", true],
+    ["Assaisonnement ail et herbes", "1½ sachet(s)", false]
+  ],
+  "a_ajouter": [
+    ["Beurre", "6 cc"],
+    ["Lait", "3 cs"],
+    ["Huile d’olive", "12 cs"],
+    ["Sucre", "3 cc"],
+    ["Vinaigre balsamique noir", "3 cs"],
+    ["Poivre et sel", "selon votre goût"]
+  ],
+  "nutrition": [
+    ["Énergie (kJ/kcal)", "3590 / 858", "607 / 145"],
+    ["Lipides total (g)", "54", "9"],
+    ["dont saturés (g)", "17,4", "2,9"],
+    ["Glucides (g)", "63", "11"],
+    ["dont sucres (g)", "11,9", "2,0"],
+    ["Fibres (g)", "8", "1"],
+    ["Protéines (g)", "34", "6"],
+    ["Sel (g)", "2,6", "0,4"]
+  ],
+  "etapes": [
+    {"titre": "On s’y met !", "points": [
+      "Veillez à bien respecter les quantités indiquées à gauche pour préparer votre recette !",
+      "Ciselez finement l’**ail**, l’**oignon** et le **persil** (effeuillez-le au préalable si vous le souhaitez).",
+      "Épluchez et coupez les **pommes de terre** en petits dés de 1-2 cm. Placez-les dans une casserole, salez et versez de l’eau à hauteur."]},
+    {"titre": "On écrase le tout", "points": [
+      "Portez la casserole à ébullition et faites cuire les **pommes de terre** 12-15 min à couvert. Contrôlez la cuisson avec la pointe d’un couteau. Réservez un peu d’eau de cuisson, puis égouttez-les. Réduisez-les en purée avec un presse-purée.",
+      "Ajoutez la moitié du **persil** et de l’**ail** (selon votre goût, vous allez le manger cru), ⅓ du **fromage râpé**, ainsi qu’une noix de beurre et un filet de lait ou d’eau de cuisson pour l’onctuosité. Salez et poivrez. Mélangez bien, puis couvrez."]},
+    {"titre": "Roulez boulettes", "points": [
+      "Pendant ce temps, placez la **viande hachée** ainsi que le reste de **fromage râpé**, d’**ail** et de **persil** dans un saladier.",
+      "Ajoutez ½ cs de lait par personne, salez et poivrez, puis mélangez bien jusqu’à avoir une farce homogène.",
+      "Formez des boulettes (environ 4-5 par personne)."]},
+    {"titre": "Mission cuisson activée", "points": [
+      "Faites chauffer un généreux filet d’huile d’olive à feu moyen-vif dans une poêle. Faites-y cuire les boulettes sur toutes leurs faces 6-8 min, ou jusqu’à ce qu’elles soient bien dorées et cuites à cœur. Réservez-les hors de la poêle.",
+      "Remettez-la sur feu moyen-doux et faites-y revenir l’**oignon** 2-3 min.",
+      "Ajoutez la **chair de tomates** et, par personne : ¼ sachet d’**assaisonnement ail et herbes** et ½ cc de sucre. Faites revenir le tout 3-4 min, ou jusqu’à ce que la sauce ait légèrement réduit. Salez et poivrez.",
+      "Remettez les polpette dans la poêle et réchauffez-les 1-2 min."]},
+    {"titre": "La touche vinaigrée", "points": [
+      "Dans un saladier, faites une vinaigrette en mélangeant un filet de vinaigre balsamique et d’huile d’olive. Salez et poivrez.",
+      "Ajoutez la **salade** au moment de servir et mélangez."]},
+    {"titre": "Miam, miam !", "points": [
+      "Servez la **salade** dans les assiettes.",
+      "Ajoutez la purée et les polpette en sauce à côté."]}
+  ]
+}

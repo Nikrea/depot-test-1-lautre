@@ -1,0 +1,63 @@
+{
+  "numero": 225,
+  "titre": "Spicy creamy merguez pasta",
+  "sous_titre": "garnies de pecorino AOP, épinards & citron",
+  "tags": ["Rapide", "Épicé"],
+  "temps": "25 – 35 min",
+  "badge": "Ingrédient de saison",
+  "note": "Pour vous, comme pour la planète, nous faisons tout notre possible pour vous proposer des légumes de saison issus de fournisseurs sélectionnés avec soin.",
+  "ustensiles": "Sauteuse, passoire, râpe, casserole avec couvercle, 2 spatules",
+  "ingredients": [
+    ["Gousse d’ail", "2 pièce(s)", false],
+    ["Oignon", "3 pièce(s)", false],
+    ["Citron", "1½ pièce(s)", true],
+    ["Rigatoni", "540 g", false],
+    ["Merguez", "12 pièce(s)", true],
+    ["Mascarpone", "1½ pot(s)", true],
+    ["Piri-piri", "1½ sachet(s)", false],
+    ["Concentré de tomates", "1½ sachet(s)", false],
+    ["Épinards", "1½ sachet(s)", true],
+    ["Pecorino AOP râpé", "1½ sachet(s)", true]
+  ],
+  "a_ajouter": [
+    ["Bouillon cube volaille", "1½ pièce(s)"],
+    ["Huile d’olive", "6 cs"],
+    ["Poivre et sel", "selon votre goût"]
+  ],
+  "nutrition": [
+    ["Énergie (kJ/kcal)", "4054 / 969", "1099 / 263"],
+    ["Lipides total (g)", "57", "16"],
+    ["dont saturés (g)", "25,5", "6,9"],
+    ["Glucides (g)", "76", "21"],
+    ["dont sucres (g)", "9,7", "2,6"],
+    ["Fibres (g)", "7", "2"],
+    ["Protéines (g)", "36", "10"],
+    ["Sel (g)", "4,2", "1,1"]
+  ],
+  "etapes": [
+    {"titre": "Pro du couteau", "points": [
+      "Veillez à bien respecter les quantités indiquées à gauche pour préparer votre recette !",
+      "Portez une casserole d’eau à ébullition. Ajoutez-y ¼ cube de bouillon par personne.",
+      "Ciselez finement l’**ail** et l’**oignon**.",
+      "Lavez bien le **citron** et prélevez-en le zeste avec une râpe fine. Coupez-le en quartiers."]},
+    {"titre": "Plouf ! Dans la casserole !", "points": [
+      "Faites cuire les **rigatoni** 11-13 min dans la casserole.",
+      "Réservez ¼ louche d’eau de cuisson des pâtes par personne, puis égouttez-les. Réservez-les à couvert."]},
+    {"titre": "Ça va chauffer !", "points": [
+      "Faites chauffer un filet d’**huile d’olive** dans une sauteuse à feu moyen-vif.",
+      "Faites-y revenir l’**ail** et l’**oignon** 2-3 min.",
+      "Entaillez les **merguez** dans la longueur et prélevez-en la chair.",
+      "Ajoutez la chair des **merguez** à la sauteuse et faites revenir 3-4 min de plus en émiettant avec une spatule."]},
+    {"titre": "La sauce qui fait la diff !", "points": [
+      "Déglacez la sauteuse avec le jus de ¼ **citron** par personne en prenant bien soin de décoller les sucs avec une spatule.",
+      "Ajoutez le **mascarpone** et, par personne : ¼ sachet de **piri-piri** (ça pique ! Dosez-le selon le goût) et ¼ de **concentré de tomates**. Salez et poivrez.",
+      "Après avoir lavé les **épinards**, déchirez-les grossièrement avec vos mains au-dessus de la sauteuse.",
+      "Laissez revenir le tout 3 min à feu moyen-vif, ou jusqu’à ce que les **épinards** flétrissent."]},
+    {"titre": "Mélange des saveurs", "points": [
+      "Ajoutez les pâtes à la sauteuse avec l’eau de cuisson réservée, la moitié du **pecorino râpé** et une pincée de zeste de **citron**.",
+      "Remuez 1-2 min, ou jusqu’à ce que la sauce soit nappante."]},
+    {"titre": "Prêt à servir, chef !", "points": [
+      "Servez les **rigatoni** aux **merguez** dans des assiettes creuses.",
+      "Saupoudrez du reste de **pecorino râpé**."]}
+  ]
+}
