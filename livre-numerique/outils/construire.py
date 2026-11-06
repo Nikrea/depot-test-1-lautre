@@ -1,6 +1,7 @@
 """Assemble le livre en un seul fichier HTML autonome (images, police et moteur intégrés).
-Usage : python3 outils/construire.py   ->  livre.html"""
-import base64, io, json
+Usage : python3 outils/construire.py [--page-claude CHEMIN]   ->  livre.html
+(--page-claude écrit aussi la variante publiée en page claude.ai, sans squelette <html>/<head>/<body>)"""
+import base64, io, json, re, sys
 from pathlib import Path
 from PIL import Image
 
@@ -43,6 +44,14 @@ def main():
     sortie = RACINE/'livre.html'
     sortie.write_text(html, encoding='utf-8')
     print(f'{sortie.name} : {len(livre["pages"])} pages, {sortie.stat().st_size/1e6:.1f} Mo')
+    if '--page-claude' in sys.argv:
+        # la plateforme fournit elle-même doctype, <head> (charset, viewport) et <body>
+        page = re.sub(r'<!doctype html>\s*|<html[^>]*>\s*|</?head>\s*|<body>\s*|</body>\s*|</html>\s*', '', html)
+        page = re.sub(r'<meta charset="utf-8">\s*|<meta name="viewport"[^>]*>\s*', '', page)
+        page = page.replace('<title>', '<meta name="claude:viewport-fit-sides" content="cover">\n<title>', 1)
+        cible = Path(sys.argv[sys.argv.index('--page-claude') + 1])
+        cible.write_text(page, encoding='utf-8')
+        print(f'{cible.name} : variante page claude.ai, {cible.stat().st_size/1e6:.1f} Mo')
 
 if __name__ == '__main__':
     main()
