@@ -31,7 +31,8 @@ def paper_light(img):
 def outside_mask(img, valid, kind):
     """Zones hors de la page : hors photo d'origine, ou fond sombre collé au bord."""
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    dark = ((hsv[...,2] < 105) & (hsv[...,1] < 70)).astype(np.uint8)
+    # seul le vrai fond (table noire) compte : le papier dans l'ombre reste, avec son texte
+    dark = ((hsv[...,2] < 72) & (hsv[...,1] < 70)).astype(np.uint8)
     dark = cv2.morphologyEx(dark, cv2.MORPH_OPEN, np.ones((5,5), np.uint8))
     h, w = dark.shape; band = np.zeros_like(dark); m = 130
     band[-m:,:] = band[:,-m:] = 1
@@ -40,7 +41,8 @@ def outside_mask(img, valid, kind):
     out = np.zeros_like(dark)
     for k in range(1, n):
         x, y, ww, hh, a = st[k]
-        if (x == 0 or y == 0 or x+ww >= w or y+hh >= h) and a > 150: out[lab == k] = 1
+        if (x == 0 or y == 0 or x+ww >= w or y+hh >= h) and a > 150 and hsv[...,2][lab == k].mean() < 55:
+            out[lab == k] = 1
     if kind == 'front': out[1500:, :300] = 0        # QR code collé au bord : ce n'est pas du fond
     out |= (valid == 0)
     return cv2.dilate(out, np.ones((7,7), np.uint8))
