@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" class="sans-js">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121110">
 <title>{{TITRE}}</title>
+<script>document.documentElement.className = "js";</script>
 <style>
 @font-face { font-family: "Titre"; src: url(data:font/woff2;base64,{{POLICE}}) format("woff2"); font-display: swap; }
 :root {
@@ -18,7 +19,9 @@
   --papier: #f6f3ec;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
+html, body { margin: 0; }
+.js, .js body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+.js #livre:not(.stf__parent) > .page { display: none; }
 body {
   background: var(--fond);
   color: var(--encre);
@@ -146,6 +149,17 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border: 0; bord
   footer { gap: 8px; }
 }
 @media (max-height: 520px) { header { padding-top: 6px; } .marque .s { display: none; } footer { padding-bottom: 8px; } }
+/* Sans JavaScript (aperçu de fichier d'une app) : les pages s'affichent l'une sous l'autre, à l'endroit */
+.note-sans-js { display: none; }
+.sans-js .app { position: relative; z-index: 1; display: block; }
+.sans-js .outils, .sans-js footer, .sans-js .aide, .sans-js .liseuse, .sans-js .tiroir, .sans-js .voile { display: none; }
+.sans-js .note-sans-js { display: block; margin: 6px 16px 14px; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.07); border: 1px solid var(--trait); font-size: 14px; color: var(--encre); }
+.sans-js .scene { display: block; padding: 0 12px 40px; }
+.sans-js #livre { display: grid; gap: 14px; max-width: 900px; margin: 0 auto; }
+.sans-js .page { position: relative; width: 100%; aspect-ratio: {{W}} / {{H}}; box-shadow: 0 6px 24px rgba(0,0,0,.5); }
+.sans-js .page[data-rot="90"], .sans-js .page[data-rot="-90"] { aspect-ratio: {{H}} / {{W}}; }
+.sans-js .page[data-rot="90"] img, .sans-js .page[data-rot="-90"] img { inset: auto; left: 50%; top: 50%; width: calc(100% * {{W}} / {{H}}); height: calc(100% * {{H}} / {{W}}); transform: translate(-50%, -50%) rotate(90deg); }
+.sans-js .page[data-rot="-90"] img { transform: translate(-50%, -50%) rotate(-90deg); }
 @media (prefers-reduced-motion: reduce) { .porte-livre, .tiroir, .aide svg { transition: none; animation: none; } }
 </style>
 </head>
@@ -154,8 +168,8 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border: 0; bord
 <div class="app">
   <header>
     <div class="marque">
-      <div class="t" id="titre"></div>
-      <div class="s" id="soustitre"></div>
+      <div class="t" id="titre">{{TITRE_HTML}}</div>
+      <div class="s" id="soustitre">{{SOUS_TITRE}}</div>
     </div>
     <div class="outils">
       <button class="btn rond" id="b-son" aria-label="Couper le son des pages" title="Son des pages"></button>
@@ -168,8 +182,9 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border: 0; bord
     </div>
   </header>
 
+  <div class="note-sans-js">Aperçu simple. Pour tourner les pages au doigt, ouvre ce fichier dans un navigateur (Safari, Chrome…).</div>
   <main class="scene" id="scene">
-    <div class="porte-livre" id="porte"><div id="livre"></div></div>
+    <div class="porte-livre" id="porte"><div id="livre">{{PAGES}}</div></div>
     <div class="aide" id="aide">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
       Glisse la page pour la tourner
@@ -236,16 +251,8 @@ const LIVRE = {{DONNEES}};
 
   // ---------- pages ----------
   const livreEl = $("livre");
-  LIVRE.pages.forEach((p, i) => {
-    const d = document.createElement("div");
-    d.className = "page";
-    if (i === 0) d.dataset.density = "hard";
-    const img = document.createElement("img");
-    img.src = p.src; img.alt = p.nom; img.draggable = false; img.decoding = "async";
-    const r = document.createElement("div"); r.className = "reliure";
-    d.append(img, r);
-    livreEl.appendChild(d);
-  });
+  // les pages sont déjà dans le fichier (visibles même sans JavaScript) : on reprend leurs images
+  livreEl.querySelectorAll(".page img").forEach((img, i) => { LIVRE.pages[i].src = img.src; img.draggable = false; });
 
   const flip = new St.PageFlip(livreEl, {
     width: LIVRE.largeur, height: LIVRE.hauteur, size: "stretch",
