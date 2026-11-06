@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121110">
+<title>{{TITRE}}</title>
+<style>
+@font-face { font-family: "Titre"; src: url(data:font/woff2;base64,{{POLICE}}) format("woff2"); font-display: swap; }
+:root {
+  --fond: #121110;
+  --encre: #f3efe7;
+  --doux: #a8a196;
+  --trait: rgba(255,255,255,.12);
+  --puce: rgba(255,255,255,.07);
+  --puce-active: rgba(255,255,255,.16);
+  --accent: #a4d13a;
+  --papier: #f6f3ec;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
+body {
+  background: var(--fond);
+  color: var(--encre);
+  font: 15px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+/* salle de lecture : lumière chaude au centre, bords dans l'ombre */
+.salle {
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(60% 55% at 50% 52%, rgba(255,214,160,.13), rgba(255,214,160,0) 70%),
+    radial-gradient(120% 90% at 50% 50%, #26221d 0%, #161412 55%, #0b0a09 100%);
+}
+.grain { position: fixed; inset: -50%; pointer-events: none; opacity: .05;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+.app { position: fixed; inset: 0; display: grid; grid-template-rows: auto minmax(0,1fr) auto; grid-template-columns: minmax(0,1fr); }
+header, footer, .scene { min-width: 0; }
+
+header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 4px max(16px, env(safe-area-inset-left));
+}
+.marque { min-width: 0; }
+.marque .t { font-family: "Titre", ui-sans-serif, system-ui, sans-serif; font-size: 17px; letter-spacing: .01em; text-transform: uppercase; line-height: 1.1; }
+.marque .t b { color: var(--accent); font-weight: inherit; }
+.marque .s { font-size: 12.5px; color: var(--doux); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.outils { display: flex; gap: 8px; flex: none; }
+
+.btn {
+  height: 44px; min-width: 44px; padding: 0 12px; border-radius: 22px;
+  border: 1px solid var(--trait); background: var(--puce); color: var(--encre);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font: 600 14px/1 inherit; font-family: inherit; cursor: pointer;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  transition: background .2s, transform .1s, opacity .2s;
+}
+.btn:hover { background: var(--puce-active); }
+button, input { touch-action: manipulation; }
+.btn:active { transform: scale(.96); }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn svg { width: 20px; height: 20px; flex: none; }
+.btn.rond { padding: 0; width: 44px; }
+.btn.plein { background: var(--encre); color: #15130f; border-color: transparent; }
+.btn.plein:hover { background: #fff; }
+
+.scene { position: relative; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 10px 16px 6px; }
+.porte-livre { position: relative; transition: transform .6s cubic-bezier(.2,.7,.2,1); }
+.porte-livre::before { /* ombre portée du livre sur la table */
+  content: ""; position: absolute; left: 4%; right: 4%; bottom: -3.5%; height: 9%;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.55), rgba(0,0,0,0) 70%);
+  filter: blur(6px); pointer-events: none;
+}
+#livre { margin: 0 auto; }
+.page { background: var(--papier); overflow: hidden; }
+.page img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+  user-select: none; -webkit-user-select: none; -webkit-user-drag: none; pointer-events: none; }
+.page .reliure { position: absolute; inset: 0; pointer-events: none; }
+.stf__item.--left .reliure  { background: linear-gradient(to left,  rgba(0,0,0,.24), rgba(0,0,0,.07) 2.5%, rgba(0,0,0,0) 9%), linear-gradient(to right, rgba(255,255,255,.05), rgba(255,255,255,0) 4%); }
+.stf__item.--right .reliure { background: linear-gradient(to right, rgba(0,0,0,.24), rgba(0,0,0,.07) 2.5%, rgba(0,0,0,0) 9%), linear-gradient(to left,  rgba(255,255,255,.05), rgba(255,255,255,0) 4%); }
+.stf__item.--hard .reliure { background: linear-gradient(to right, rgba(0,0,0,.18), rgba(0,0,0,0) 4%); }
+.stf__parent { touch-action: none; }
+
+footer {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 6px max(16px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.curseur { flex: 1; max-width: 420px; min-width: 0; display: grid; gap: 5px; text-align: center; }
+.curseur .num { font-size: 12.5px; color: var(--doux); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.curseur .num b { color: var(--encre); font-weight: 600; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; margin: 0; }
+input[type=range]::-webkit-slider-runnable-track { height: 3px; border-radius: 2px; background: linear-gradient(to right, var(--accent) var(--p,0%), rgba(255,255,255,.18) var(--p,0%)); }
+input[type=range]::-moz-range-track { height: 3px; border-radius: 2px; background: rgba(255,255,255,.18); }
+input[type=range]::-moz-range-progress { height: 3px; background: var(--accent); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--encre); margin-top: -6.5px; box-shadow: 0 1px 4px rgba(0,0,0,.5); }
+input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 50%; background: var(--encre); }
+
+/* aide au premier lancement */
+.aide { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 30;
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 24px;
+  background: rgba(20,18,16,.82); border: 1px solid var(--trait); font-size: 13.5px; white-space: nowrap;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: opacity .5s; pointer-events: none; }
+.aide svg { width: 22px; height: 22px; animation: glisse 1.8s ease-in-out infinite; }
+@keyframes glisse { 0%,100% { transform: translateX(6px); } 50% { transform: translateX(-6px); } }
+.aide.cache { opacity: 0; }
+
+/* panneaux */
+.voile { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 40; }
+.voile.ouvert { opacity: 1; pointer-events: auto; }
+.tiroir { position: fixed; z-index: 41; left: 0; right: 0; bottom: 0; max-height: 82vh; overflow: auto;
+  background: #1b1916; border-top: 1px solid var(--trait); border-radius: 20px 20px 0 0;
+  padding: 10px 16px max(18px, env(safe-area-inset-bottom)); transform: translateY(105%); transition: transform .35s cubic-bezier(.2,.7,.2,1); }
+.tiroir.ouvert { transform: none; }
+@media (min-width: 760px) { .tiroir { left: auto; top: 0; bottom: 0; width: 400px; max-height: none; border-radius: 0; border-top: 0; border-left: 1px solid var(--trait); transform: translateX(105%); padding-top: 18px; } }
+.tiroir .poignee { width: 40px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.25); margin: 0 auto 12px; }
+@media (min-width: 760px) { .tiroir .poignee { display: none; } }
+.tiroir h2 { font-family: "Titre", ui-sans-serif, sans-serif; font-weight: 400; font-size: 16px; text-transform: uppercase; letter-spacing: .02em; margin: 0 0 12px; display: flex; justify-content: space-between; align-items: center; }
+.entree { display: flex; gap: 14px; align-items: center; width: 100%; text-align: left; padding: 10px; margin: 0 0 6px; border-radius: 14px; border: 1px solid transparent; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.entree:hover, .entree.ici { background: var(--puce); border-color: var(--trait); }
+.vignette { flex: none; width: 76px; height: 54px; border-radius: 8px; overflow: hidden; position: relative; background: #000; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+.vignette img { position: absolute; left: 50%; top: 50%; }
+.entree .tt { font-weight: 600; font-size: 14.5px; line-height: 1.25; }
+.entree .dd { font-size: 12.5px; color: var(--doux); margin-top: 3px; }
+.entree .pp { margin-left: auto; font-size: 12px; color: var(--doux); font-variant-numeric: tabular-nums; flex: none; }
+
+/* liseuse : la page à l'endroit, zoom au doigt */
+.liseuse { position: fixed; inset: 0; z-index: 50; background: #0c0b0a; display: none; touch-action: none; user-select: none; -webkit-user-select: none; }
+.liseuse.ouvert { display: block; }
+.liseuse .vue { position: absolute; inset: 0; overflow: hidden; }
+.liseuse img { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; box-shadow: 0 10px 40px rgba(0,0,0,.6); background: var(--papier); }
+.liseuse .barre { position: absolute; left: 0; right: 0; display: flex; align-items: center; gap: 10px; padding: 0 max(14px, env(safe-area-inset-right)) 0 max(14px, env(safe-area-inset-left)); pointer-events: none; z-index: 2; }
+.liseuse .barre > * { pointer-events: auto; }
+.liseuse .haut { top: 0; padding-top: max(12px, env(safe-area-inset-top)); justify-content: space-between; }
+.liseuse .bas { bottom: 0; padding-bottom: max(14px, env(safe-area-inset-bottom)); justify-content: center; }
+.liseuse .titre-page { font-size: 13px; color: var(--doux); text-shadow: 0 1px 6px #000; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.liseuse .titre-page b { color: var(--encre); }
+.liseuse .btn { background: rgba(30,28,25,.75); }
+.astuce { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 3; padding: 12px 16px; border-radius: 16px; background: rgba(20,18,16,.85); border: 1px solid var(--trait); font-size: 13.5px; text-align: center; transition: opacity .6s; pointer-events: none; max-width: 80vw; }
+.astuce.cache { opacity: 0; }
+
+@media (max-width: 420px) {
+  .marque .t { font-size: 15px; }
+  .btn.texte span { display: none; }
+  .btn.texte { width: 44px; padding: 0; }
+  footer { gap: 8px; }
+}
+@media (max-height: 520px) { header { padding-top: 6px; } .marque .s { display: none; } footer { padding-bottom: 8px; } }
+@media (prefers-reduced-motion: reduce) { .porte-livre, .tiroir, .aide svg { transition: none; animation: none; } }
+</style>
+</head>
+<body>
+<div class="salle"></div><div class="grain"></div>
+<div class="app">
+  <header>
+    <div class="marque">
+      <div class="t" id="titre"></div>
+      <div class="s" id="soustitre"></div>
+    </div>
+    <div class="outils">
+      <button class="btn rond" id="b-son" aria-label="Couper le son des pages" title="Son des pages"></button>
+      <button class="btn rond" id="b-ecran" aria-label="Plein écran" title="Plein écran">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </button>
+      <button class="btn rond" id="b-sommaire" aria-label="Sommaire" title="Sommaire">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="scene" id="scene">
+    <div class="porte-livre" id="porte"><div id="livre"></div></div>
+    <div class="aide" id="aide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      Glisse la page pour la tourner
+    </div>
+  </main>
+
+  <footer>
+    <button class="btn rond" id="b-prec" aria-label="Page précédente">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="curseur">
+      <div class="num" id="num"></div>
+      <input type="range" id="glissiere" min="1" value="1" aria-label="Aller à la page">
+    </div>
+    <button class="btn rond" id="b-suiv" aria-label="Page suivante">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+    <button class="btn plein texte" id="b-lire" aria-label="Lire la page en grand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8M10.5 7.5v6M7.5 10.5h6"/></svg>
+      <span>Lire</span>
+    </button>
+  </footer>
+</div>
+
+<div class="voile" id="voile"></div>
+<aside class="tiroir" id="tiroir" aria-label="Sommaire">
+  <div class="poignee"></div>
+  <h2>Sommaire <button class="btn rond" id="b-fermer-sommaire" aria-label="Fermer le sommaire"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></h2>
+  <div id="entrees"></div>
+</aside>
+
+<div class="liseuse" id="liseuse" role="dialog" aria-label="Lecture en grand">
+  <div class="vue" id="vue"><img id="image-lue" alt=""></div>
+  <div class="barre haut">
+    <div class="titre-page" id="titre-lu"></div>
+    <button class="btn rond" id="b-fermer" aria-label="Fermer la lecture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="barre bas">
+    <button class="btn rond" id="l-prec" aria-label="Page précédente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="btn rond" id="l-moins" aria-label="Dézoomer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 12h12"/></svg></button>
+    <button class="btn rond" id="l-plus" aria-label="Zoomer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 12h12M12 6v12"/></svg></button>
+    <button class="btn rond" id="l-suiv" aria-label="Page suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+  <div class="astuce cache" id="astuce"></div>
+</div>
+
+<script>{{PAGEFLIP}}</script>
+<script>
+const LIVRE = {{DONNEES}};
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const RATIO = LIVRE.largeur / LIVRE.hauteur;         // largeur / hauteur d'une page
+  const N = LIVRE.pages.length;
+  const memo = {
+    get(k) { try { return localStorage.getItem("livre:" + k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem("livre:" + k, v); } catch (e) {} }
+  };
+
+  // ---------- titre ----------
+  const t = LIVRE.titre.split(" ");
+  $("titre").innerHTML = t[0] + " <b>" + t.slice(1).join(" ") + "</b>";
+  $("soustitre").textContent = LIVRE.sous_titre;
+
+  // ---------- pages ----------
+  const livreEl = $("livre");
+  LIVRE.pages.forEach((p, i) => {
+    const d = document.createElement("div");
+    d.className = "page";
+    if (i === 0) d.dataset.density = "hard";
+    const img = document.createElement("img");
+    img.src = p.src; img.alt = p.nom; img.draggable = false; img.decoding = "async";
+    const r = document.createElement("div"); r.className = "reliure";
+    d.append(img, r);
+    livreEl.appendChild(d);
+  });
+
+  const flip = new St.PageFlip(livreEl, {
+    width: LIVRE.largeur, height: LIVRE.hauteur, size: "stretch",
+    minWidth: 1, maxWidth: 4000, minHeight: 1, maxHeight: 6000,
+    showCover: true, usePortrait: true, autoSize: true,
+    mobileScrollSupport: false, maxShadowOpacity: 0.55, drawShadow: true,
+    flippingTime: 850, swipeDistance: 24, showPageCorners: true, startZIndex: 2
+  });
+
+  // ---------- mise en page : le livre tient toujours dans l'écran ----------
+  let deuxPages = false;
+  function miseEnPage() {
+    const sc = $("scene").getBoundingClientRect();
+    const W = sc.width - 32, H = sc.height - 22;
+    // double page seulement si chaque page garde une taille confortable
+    const pDouble = Math.min(W / 2, H * RATIO);
+    const pSimple = Math.min(W, H * RATIO);
+    deuxPages = W >= 600 && pDouble >= pSimple * 0.72;
+    const pw = Math.max(80, Math.floor(deuxPages ? pDouble : pSimple));
+    livreEl.style.width = (deuxPages ? pw * 2 : pw) + "px";
+    livreEl.style.maxWidth = "none";
+    flip.getSettings().minWidth = deuxPages ? 1 : 1e7;   // portrait = une page à la fois
+    flip.update();
+    centrer();
+  }
+  // sur la couverture fermée, le livre est recentré
+  function centrer() {
+    const i = flip.getCurrentPageIndex();
+    const pw = parseFloat(livreEl.style.width) / (deuxPages ? 2 : 1);
+    let dx = 0;
+    if (deuxPages && i === 0) dx = -pw / 2;
+    $("porte").style.transform = "translateX(" + dx + "px)";
+  }
+
+  // ---------- son de page (synthétisé, aucune ressource externe) ----------
+  let son = memo.get("son") !== "0", actx = null;
+  const icSon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/>';
+  function majSon() {
+    $("b-son").innerHTML = icSon + (son ? '<path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg>' : '<path d="M17 9l5 6M22 9l-5 6"/></svg>');
+    $("b-son").setAttribute("aria-label", son ? "Couper le son des pages" : "Activer le son des pages");
+  }
+  function bruitPage() {
+    if (!son) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === "suspended") actx.resume();
+      const t0 = actx.currentTime, dur = 0.42, sr = actx.sampleRate;
+      const buf = actx.createBuffer(1, Math.floor(sr * dur), sr), d = buf.getChannelData(0);
+      let b = 0;
+      for (let i = 0; i < d.length; i++) {           // bruit froissé, plus dense au milieu
+        const x = i / d.length; b = 0.85 * b + 0.15 * (Math.random() * 2 - 1);
+        d[i] = (Math.random() * 2 - 1) * 0.6 + b * 2.2;
+        d[i] *= Math.sin(Math.PI * Math.min(1, x * 1.6)) * (1 - x) ** 0.6;
+      }
+      const src = actx.createBufferSource(); src.buffer = buf;
+      const f = actx.createBiquadFilter(); f.type = "bandpass"; f.Q.value = 0.7;
+      f.frequency.setValueAtTime(700, t0); f.frequency.exponentialRampToValueAtTime(3800, t0 + 0.22); f.frequency.exponentialRampToValueAtTime(1500, t0 + dur);
+      const g = actx.createGain(); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      src.connect(f).connect(g).connect(actx.destination); src.start(t0);
+    } catch (e) {}
+  }
+  $("b-son").onclick = () => { son = !son; memo.set("son", son ? "1" : "0"); majSon(); };
+  majSon();
+
+  // ---------- navigation ----------
+  const gl = $("glissiere"); gl.max = N;
+  function pagesVisibles() {
+    const i = flip.getCurrentPageIndex();
+    if (!deuxPages || i === 0) return [i];
+    const a = i - ((i - 1) % 2);
+    return a + 1 < N ? [a, a + 1] : [a];
+  }
+  function majInterface() {
+    const v = pagesVisibles();
+    const lab = v.length === 2 ? (v[0] + 1) + "–" + (v[1] + 1) : String(v[0] + 1);
+    const nom = LIVRE.pages[v[0]].nom;
+    $("num").innerHTML = "<b>" + lab + "</b> / " + N + " · " + nom;
+    gl.value = v[0] + 1;
+    gl.style.setProperty("--p", (N > 1 ? (v[0]) / (N - 1) * 100 : 0) + "%");
+    $("b-prec").disabled = v[0] === 0;
+    $("b-suiv").disabled = v[v.length - 1] >= N - 1;
+    document.querySelectorAll(".entree").forEach((e) => e.classList.toggle("ici", v.includes(+e.dataset.i) || (+e.dataset.i + 1 === v[0] && LIVRE.pages[+e.dataset.i].rot !== 0)));
+    memo.set("page", String(v[0]));
+  }
+  let aideVue = memo.get("aide") === "1";
+  function cacherAide() { $("aide").classList.add("cache"); if (!aideVue) { aideVue = true; memo.set("aide", "1"); } }
+  if (aideVue) $("aide").classList.add("cache"); else setTimeout(cacherAide, 7000);
+
+  flip.on("flip", () => { majInterface(); centrer(); cacherAide(); });
+  flip.on("changeOrientation", () => { majInterface(); centrer(); });
+  flip.on("changeState", (e) => { if (e.data === "flipping") bruitPage(); if (e.data === "user_fold") cacherAide(); });
+  $("b-prec").onclick = () => flip.flipPrev();
+  $("b-suiv").onclick = () => flip.flipNext();
+  gl.oninput = () => { gl.style.setProperty("--p", ((gl.value - 1) / (N - 1) * 100) + "%"); };
+  gl.onchange = () => { const k = +gl.value - 1; if (!pagesVisibles().includes(k)) flip.flip(k); };
+
+  // ---------- sommaire ----------
+  const entrees = $("entrees");
+  LIVRE.sommaire.forEach((s) => {
+    const i = s.page - 1, p = LIVRE.pages[i];
+    const b = document.createElement("button");
+    b.className = "entree"; b.dataset.i = i;
+    const v = document.createElement("div"); v.className = "vignette";
+    const im = document.createElement("img"); im.src = p.src; im.alt = "";
+    // vignette à l'endroit, même pour une page imprimée de côté
+    const box = { w: 76, h: 54 };
+    if (p.rot === 0) { im.style.width = box.w + "px"; im.style.height = (box.w / RATIO) + "px"; im.style.transform = "translate(-50%,-26%)"; }
+    else { im.style.width = box.h + "px"; im.style.height = (box.h / RATIO) + "px"; im.style.transform = "translate(-50%,-50%) rotate(" + p.rot + "deg)"; }
+    v.appendChild(im);
+    const tx = document.createElement("div");
+    tx.innerHTML = "<div class='tt'></div><div class='dd'></div>";
+    tx.querySelector(".tt").textContent = s.titre; tx.querySelector(".dd").textContent = s.detail || "";
+    const pp = document.createElement("div"); pp.className = "pp"; pp.textContent = "p. " + s.page;
+    b.append(v, tx, pp);
+    b.onclick = () => { fermerSommaire(); setTimeout(() => flip.flip(i), 250); };
+    entrees.appendChild(b);
+  });
+  function ouvrirSommaire() { $("voile").classList.add("ouvert"); $("tiroir").classList.add("ouvert"); }
+  function fermerSommaire() { $("voile").classList.remove("ouvert"); $("tiroir").classList.remove("ouvert"); }
+  $("b-sommaire").onclick = ouvrirSommaire;
+  $("b-fermer-sommaire").onclick = fermerSommaire;
+  $("voile").onclick = fermerSommaire;
+
+  // ---------- plein écran ----------
+  const fs = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
+  if (!fs) $("b-ecran").style.display = "none";
+  $("b-ecran").onclick = () => {
+    const sortir = document.exitFullscreen || document.webkitExitFullscreen;
+    if (document.fullscreenElement || document.webkitFullscreenElement) sortir.call(document);
+    else fs.call(document.documentElement).catch?.(() => {});
+  };
+
+  // ---------- liseuse : page à l'endroit, zoom et glisser ----------
+  const L = { ouvert: false, i: 0, s: 1, tx: 0, ty: 0, bw: 0, bh: 0, cache: {} };
+  const vue = $("vue"), imL = $("image-lue");
+  function aLEndroit(i) {            // image tournée dans le bon sens (calculée une fois)
+    const p = LIVRE.pages[i];
+    if (!p.rot) return Promise.resolve(p.src);
+    if (L.cache[i]) return Promise.resolve(L.cache[i]);
+    return new Promise((ok) => {
+      const im = new Image();
+      im.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = im.naturalHeight; c.height = im.naturalWidth;
+        const g = c.getContext("2d");
+        g.translate(c.width / 2, c.height / 2); g.rotate(p.rot * Math.PI / 180);
+        g.drawImage(im, -im.naturalWidth / 2, -im.naturalHeight / 2);
+        c.toBlob((b) => { L.cache[i] = URL.createObjectURL(b); ok(L.cache[i]); }, "image/jpeg", 0.92);
+      };
+      im.src = p.src;
+    });
+  }
+  function ajuster() {
+    const vw = vue.clientWidth, vh = vue.clientHeight;
+    const iw = imL.naturalWidth || 1, ih = imL.naturalHeight || 1;
+    const marge = (vw < 600 || vh < 500) ? 6 : 36;
+    const reserve = vh >= 640 ? 130 : 0;              // place pour les boutons, si l'écran est assez haut
+    const k = Math.min((vw - 2 * marge) / iw, (vh - 2 * marge - reserve) / ih);
+    L.bw = iw * k; L.bh = ih * k;
+    imL.style.width = L.bw + "px"; imL.style.height = L.bh + "px";
+    L.s = 1; L.tx = (vw - L.bw) / 2; L.ty = (vh - L.bh) / 2;
+    appliquer(false);
+  }
+  function borner() {
+    const vw = vue.clientWidth, vh = vue.clientHeight, w = L.bw * L.s, h = L.bh * L.s;
+    L.tx = w <= vw ? (vw - w) / 2 : Math.min(0, Math.max(vw - w, L.tx));
+    L.ty = h <= vh ? (vh - h) / 2 : Math.min(0, Math.max(vh - h, L.ty));
+  }
+  function appliquer(anime, dx) {
+    imL.style.transition = anime ? "transform .28s cubic-bezier(.2,.7,.2,1)" : "none";
+    imL.style.transform = "translate(" + (L.tx + (dx || 0)) + "px," + L.ty + "px) scale(" + L.s + ")";
+  }
+  function zoomVers(s, cx, cy, anime) {
+    s = Math.max(1, Math.min(6, s));
+    L.tx = cx - (cx - L.tx) * (s / L.s); L.ty = cy - (cy - L.ty) * (s / L.s); L.s = s;
+    borner(); appliquer(anime);
+  }
+  let astuceT = null;
+  function astuce(txt) {
+    const a = $("astuce"); a.textContent = txt; a.classList.remove("cache");
+    clearTimeout(astuceT); astuceT = setTimeout(() => a.classList.add("cache"), 2600);
+  }
+  async function montrer(i, sens) {
+    L.i = (i + N) % N;
+    const p = LIVRE.pages[L.i];
+    $("titre-lu").innerHTML = "<b>" + (L.i + 1) + " / " + N + "</b> · ";
+    $("titre-lu").append(document.createTextNode(p.nom));
+    const src = await aLEndroit(L.i);
+    imL.style.opacity = "0";
+    imL.onload = () => {
+      ajuster();
+      if (sens) { appliquer(false, sens * 60); requestAnimationFrame(() => { imL.style.transition = "transform .3s cubic-bezier(.2,.7,.2,1), opacity .3s"; imL.style.opacity = "1"; imL.style.transform = "translate(" + L.tx + "px," + L.ty + "px) scale(1)"; }); }
+      else imL.style.opacity = "1";
+      const paysage = imL.naturalWidth > imL.naturalHeight, portraitEcran = vue.clientHeight > vue.clientWidth;
+      if (paysage && portraitEcran && memo.get("astuce-tourner") !== "1") { astuce("Tourne ton téléphone pour lire en grand, ou touche deux fois pour zoomer"); memo.set("astuce-tourner", "1"); }
+    };
+    imL.src = src;
+  }
+  function ouvrirLiseuse() {
+    L.ouvert = true; $("liseuse").classList.add("ouvert");
+    montrer(pagesVisibles()[0], 0);
+    if (memo.get("astuce-zoom") !== "1" && !(vue.clientHeight > vue.clientWidth)) { astuce("Pince ou touche deux fois pour zoomer · glisse pour changer de page"); memo.set("astuce-zoom", "1"); }
+  }
+  function fermerLiseuse() {
+    L.ouvert = false; $("liseuse").classList.remove("ouvert");
+    if (!pagesVisibles().includes(L.i)) flip.turnToPage(L.i);
+    majInterface(); centrer();
+  }
+  $("b-lire").onclick = ouvrirLiseuse;
+  $("b-fermer").onclick = fermerLiseuse;
+  $("l-prec").onclick = () => montrer(L.i - 1, -1);
+  $("l-suiv").onclick = () => montrer(L.i + 1, 1);
+  $("l-plus").onclick = () => zoomVers(L.s * 1.6, vue.clientWidth / 2, vue.clientHeight / 2, true);
+  $("l-moins").onclick = () => zoomVers(L.s / 1.6, vue.clientWidth / 2, vue.clientHeight / 2, true);
+
+  // gestes : un doigt = déplacer / changer de page, deux doigts = zoom, double appui = zoom
+  const pts = new Map(); let g0 = null, dernierAppui = 0, dernierXY = null, glisse = 0;
+  vue.addEventListener("pointerdown", (e) => {
+    vue.setPointerCapture(e.pointerId);
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    debutGeste();
+  });
+  function debutGeste() {
+    const a = [...pts.values()];
+    if (a.length === 1) g0 = { x: a[0].x, y: a[0].y, tx: L.tx, ty: L.ty, s: L.s, t: Date.now(), un: true };
+    else if (a.length === 2) {
+      const m = { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2 };
+      g0 = { d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y), m, tx: L.tx, ty: L.ty, s: L.s, un: false };
+    }
+  }
+  vue.addEventListener("pointermove", (e) => {
+    if (!pts.has(e.pointerId) || !g0) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const a = [...pts.values()];
+    if (a.length === 2 && !g0.un) {
+      const d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y), m = { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2 };
+      const s = Math.max(1, Math.min(6, g0.s * d / g0.d));
+      L.s = s; L.tx = m.x - (g0.m.x - g0.tx) * (s / g0.s); L.ty = m.y - (g0.m.y - g0.ty) * (s / g0.s);
+      borner(); appliquer(false);
+    } else if (a.length === 1 && g0.un) {
+      const dx = a[0].x - g0.x, dy = a[0].y - g0.y;
+      if (L.s > 1.01) { L.tx = g0.tx + dx; L.ty = g0.ty + dy; borner(); appliquer(false); }
+      else { glisse = dx; appliquer(false, dx * 0.9); }
+    }
+  });
+  function finGeste(e) {
+    if (!pts.has(e.pointerId)) return;
+    const p = pts.get(e.pointerId); pts.delete(e.pointerId);
+    if (g0 && g0.un && pts.size === 0) {
+      const dx = p.x - g0.x, dy = p.y - g0.y, dt = Date.now() - g0.t;
+      if (L.s <= 1.01 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) { montrer(L.i + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1); glisse = 0; g0 = null; return; }
+      if (L.s <= 1.01) appliquer(true);
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && dt < 300) {        // appui court
+        const now = Date.now();
+        if (now - dernierAppui < 320 && dernierXY && Math.hypot(p.x - dernierXY.x, p.y - dernierXY.y) < 40) {
+          zoomVers(L.s > 1.2 ? 1 : 2.6, p.x, p.y, true); dernierAppui = 0;
+        } else { dernierAppui = now; dernierXY = p; }
+      }
+    }
+    if (pts.size === 0) { g0 = null; glisse = 0; } else debutGeste();
+  }
+  vue.addEventListener("pointerup", finGeste);
+  vue.addEventListener("pointercancel", finGeste);
+  vue.addEventListener("wheel", (e) => { e.preventDefault(); zoomVers(L.s * Math.exp(-e.deltaY * 0.0022), e.clientX, e.clientY, false); }, { passive: false });
+
+  // clavier
+  document.addEventListener("keydown", (e) => {
+    if (L.ouvert) {
+      if (e.key === "Escape") fermerLiseuse();
+      else if (e.key === "ArrowRight") montrer(L.i + 1, 1);
+      else if (e.key === "ArrowLeft") montrer(L.i - 1, -1);
+      else if (e.key === "+" || e.key === "=") $("l-plus").click();
+      else if (e.key === "-") $("l-moins").click();
+      return;
+    }
+    if (e.key === "Escape") fermerSommaire();
+    if (e.key === "ArrowRight") flip.flipNext();
+    if (e.key === "ArrowLeft") flip.flipPrev();
+  });
+
+  // ---------- démarrage ----------
+  flip.loadFromHTML(document.querySelectorAll("#livre .page"));
+
+  // Au doigt, le pli part de l'endroit où le doigt s'est posé (et non de sa position
+  // 250 ms plus tard) : sinon un glisser lent vers la gauche pouvait tourner la page à l'envers.
+  const bouger = flip.userMove.bind(flip);
+  flip.userMove = function (pos, auDoigt) {
+    if (auDoigt && this.isUserTouch && !this.isUserMove && this.mousePosition &&
+        Math.hypot(pos.x - this.mousePosition.x, pos.y - this.mousePosition.y) > 5) {
+      this.isUserMove = true;
+      this.getFlipController().fold(this.mousePosition);
+    }
+    return bouger(pos, auDoigt);
+  };
+  // Une page à la fois : il suffit d'amener la page au-delà de son milieu pour la tourner.
+  const fc = flip.getFlipController(), lacher = fc.stopMove.bind(fc);
+  fc.stopMove = function () {
+    if (this.calc && flip.getOrientation() === "portrait" && this.calc.getDirection() === 0) {
+      const p = this.calc.getPosition(), r = this.getBoundsRect(), y = this.calc.getCorner() === "bottom" ? r.height : 0;
+      if (p.x <= r.pageWidth * 0.5) return this.animateFlippingTo(p, { x: -r.pageWidth, y }, true);
+    }
+    return lacher();
+  };
+
+  const reprise = parseInt(memo.get("page") || "0", 10);
+  if (reprise > 0 && reprise < N) flip.turnToPage(reprise);
+  window.addEventListener("resize", () => { miseEnPage(); if (L.ouvert) ajuster(); majInterface(); });
+  requestAnimationFrame(() => { miseEnPage(); majInterface(); });
+  setTimeout(() => { miseEnPage(); majInterface(); }, 60);
+  window.__livre = flip;
+})();
+</script>
+</body>
+</html>

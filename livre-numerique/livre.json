@@ -1,0 +1,22 @@
+{
+  "titre": "Hello L’Antihéros",
+  "sous_titre": "Ma Box du 5 novembre · Le meilleur de Cyril Lignac",
+  "pages": [
+    { "img": "01.jpg", "rot": 0,   "nom": "Couverture" },
+    { "img": "02.jpg", "rot": -90, "nom": "La Fraîche : poulet, nouilles & sauce satay" },
+    { "img": "03.jpg", "rot": 90,  "nom": "La Fraîche : la recette pas à pas" },
+    { "img": "04.jpg", "rot": -90, "nom": "Poulet à la crème de poireau & muscade" },
+    { "img": "05.jpg", "rot": 90,  "nom": "Poulet à la crème de poireau : la recette" },
+    { "img": "06.jpg", "rot": -90, "nom": "Salade minute de lentilles, comté AOP & jambon" },
+    { "img": "07.jpg", "rot": 90,  "nom": "Salade minute de lentilles : la recette" },
+    { "img": "08.jpg", "rot": -90, "nom": "Polpette des Pouilles : boulettes de bœuf" },
+    { "img": "09.jpg", "rot": 90,  "nom": "Polpette des Pouilles : la recette" }
+  ],
+  "sommaire": [
+    { "page": 1, "titre": "Couverture", "detail": "Hello L’Antihéros · au menu cette semaine" },
+    { "page": 2, "titre": "La Fraîche : poulet, nouilles & sauce satay", "detail": "Recette 251 · 25–35 min · épicé" },
+    { "page": 4, "titre": "Poulet à la crème de poireau & muscade", "detail": "Recette 204 · 25–35 min · gouda, riz & persil" },
+    { "page": 6, "titre": "Salade minute de lentilles, comté AOP & jambon", "detail": "Recette 205 · 15–25 min · sarasson & endive" },
+    { "page": 8, "titre": "Polpette des Pouilles : boulettes de bœuf", "detail": "Recette 206 · 35–45 min · purée persillée" }
+  ]
+}

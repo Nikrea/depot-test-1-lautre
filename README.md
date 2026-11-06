@@ -62,3 +62,7 @@ eldorado des créateurs, pour la formation de Nik & Odyo.
 [`le-dernier-selfie/`](le-dernier-selfie/README.md) — *Le dernier selfie* : 35 s d'animation façon stop-motion
 réaliste tirées d'une seule image. Dix personnes aux yeux blancs se lèvent une à une et quittent le cadre
 d'un selfie, jusqu'au canapé vide.
+
+[`livre-numerique/`](livre-numerique/README.md) — *Hello L'Antihéros* : le livret recettes de la box
+du 5 novembre transformé en livre numérique à feuilleter au doigt (`livre.html`, un seul fichier),
+pages redressées depuis des photos, couverture renommée, lecture en grand avec zoom.
