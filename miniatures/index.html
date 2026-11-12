@@ -143,6 +143,13 @@ button { cursor: pointer; }
 .chip[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
 .chip[aria-pressed="true"]::after { background: var(--gold-ink); }
 .sub { color: var(--muted); font-size: 12.5px; margin: 0; }
+.levels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.level {
+  display: grid; gap: 6px; justify-items: center; padding: 9px 2px 7px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface-2); font-size: 11.5px; font-weight: 600; color: var(--muted); min-width: 0;
+}
+.level i { display: block; width: 72%; height: 5px; border-radius: 3px; background: linear-gradient(90deg, hsl(212 var(--s) 56%), hsl(38 var(--s) 58%), hsl(338 var(--s) 60%)); }
+.level[aria-pressed="true"] { border-color: var(--gold); color: var(--fg); box-shadow: inset 0 0 0 1px var(--gold); }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .sliders { display: grid; gap: 10px; }
 .slider { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; }
@@ -216,13 +223,13 @@ details[open] summary { margin-bottom: 10px; }
     <section class="stage" aria-label="Miniature">
       <div class="modes">
         <div class="seg" role="group" aria-label="Outil">
-          <button type="button" id="modeText" data-mode="text" aria-pressed="true">Texte</button>
-          <button type="button" id="modeImage" data-mode="image" aria-pressed="false">Image</button>
+          <button type="button" id="modeImage" data-mode="image" aria-pressed="true">Image</button>
+          <button type="button" id="modeText" data-mode="text" aria-pressed="false">Texte</button>
           <button type="button" id="modeBrush" data-mode="brush" aria-pressed="false">Pinceau</button>
         </div>
-        <span class="hint" id="modeHint">Glisse sur l'image pour placer le mot.</span>
+        <span class="hint" id="modeHint">Glisse pour recadrer. Molette : zoom.</span>
       </div>
-      <div class="canvas-wrap" id="wrap" data-mode="text" tabindex="0" aria-label="Aperçu de la miniature">
+      <div class="canvas-wrap" id="wrap" data-mode="image" tabindex="0" aria-label="Aperçu de la miniature">
         <canvas id="final" width="1280" height="720"></canvas>
         <canvas id="overlay" width="1280" height="720"></canvas>
         <div class="drop-veil" id="dropVeil" hidden>Dépose l'image ici</div>
@@ -296,8 +303,21 @@ details[open] summary { margin-bottom: 10px; }
     </section>
 
     <section class="group">
-      <h2>Ambiance</h2>
-      <div class="chips" id="presets" role="group" aria-label="Ambiance"></div>
+      <div class="group-head"><h2>Retouche de l'image</h2><span class="hint" id="levelName"></span></div>
+      <div class="row">
+        <div class="seg" role="group" aria-label="Style de lumière">
+          <button type="button" id="styleLum" aria-pressed="true">Lumineux</button>
+          <button type="button" id="styleDra" aria-pressed="false">Dramatique</button>
+        </div>
+        <span class="sub" id="styleHint"></span>
+      </div>
+      <div class="levels" id="levels" role="group" aria-label="Niveau de retouche"></div>
+      <p class="sub" id="analysis"></p>
+      <div class="row" id="aiRow" hidden>
+        <button class="btn" id="aiBtn" type="button">Faire régler par Claude</button>
+        <span class="sub">Claude regarde l'image et dose chaque teinte.</span>
+      </div>
+      <p class="detour-msg" id="aiMsg" hidden></p>
       <details id="lookDetails">
         <summary>Réglages fins</summary>
         <div class="sliders" id="lookSliders"></div>
@@ -305,14 +325,16 @@ details[open] summary { margin-bottom: 10px; }
     </section>
 
     <section class="group">
-      <h2>Lettrage</h2>
+      <div class="group-head">
+        <h2>Lettrage</h2>
+        <label class="switch"><input type="checkbox" id="lockText" checked><span>Position fixe</span></label>
+      </div>
       <div class="sliders" id="textSliders"></div>
       <details>
         <summary>Forme et étoile</summary>
         <div class="sliders" id="shapeSliders"></div>
       </details>
       <div class="row">
-        <button class="btn" id="centerText" type="button">Recentrer le mot</button>
         <button class="btn" id="resetAll" type="button">Réglages d'origine</button>
       </div>
     </section>
@@ -339,7 +361,7 @@ const W = 1280, H = 720;
 const ORT_URL = 'https://cdnjs.cloudflare.com/ajax/libs/onnxruntime-web/1.17.3/ort.min.js';
 const MODEL_BASE = new URL('model/', location.href).href;
 const SAMPLE = { img: 'sample/lune.jpg', mask: 'sample/lune-masque.png', word: 'OSER', frame: { zoom: 1, ox: 0, oy: 400 } };
-const STORE_KEY = 'atelier-etoile-v1';
+const STORE_KEY = 'atelier-etoile-v3';
 const $ = (s) => document.querySelector(s);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; };
@@ -347,24 +369,44 @@ const rctx = (c) => c.getContext('2d', { willReadFrequently: true });
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 
 /* ---------- réglages ---------- */
-const PRESETS = {
-  eclat:   { label: 'Éclat',   exposure: .06, contrast: .28, color: .38, warmth: .06, clarity: .38, sharpen: .35, bloom: .22, vignette: .38, cine: 0 },
-  cine:    { label: 'Ciné',    exposure: -.02, contrast: .36, color: .14, warmth: 0, clarity: .32, sharpen: .3, bloom: .14, vignette: .5, cine: .6 },
-  reve:    { label: 'Rêve',    exposure: .12, contrast: .08, color: .3, warmth: .16, clarity: .05, sharpen: .12, bloom: .62, vignette: .26, cine: 0 },
-  nuit:    { label: 'Nuit',    exposure: -.14, contrast: .32, color: .24, warmth: -.45, clarity: .32, sharpen: .3, bloom: .36, vignette: .62, cine: .2 },
-  or:      { label: 'Or',      exposure: .04, contrast: .3, color: .42, warmth: .5, clarity: .3, sharpen: .3, bloom: .38, vignette: .46, cine: .1 },
-  naturel: { label: 'Naturel', exposure: 0, contrast: 0, color: 0, warmth: 0, clarity: 0, sharpen: 0, bloom: 0, vignette: 0, cine: 0 },
-};
-const LOOK_KEYS = ['exposure', 'contrast', 'color', 'warmth', 'clarity', 'sharpen', 'bloom', 'vignette', 'cine'];
+// Niveaux de retouche : une force s, que l'analyse de chaque image module ensuite (voir levelLook).
+const LEVELS = [
+  { label: 'Brut', s: 0 }, { label: 'Net', s: .4 }, { label: 'Éclat', s: .72 }, { label: 'Intense', s: 1 }, { label: 'Extrême', s: 1.3 },
+];
+const LOOK_KEYS = ['auto', 'exposure', 'lift', 'contrast', 'color', 'spread', 'pop', 'clarity', 'sharpen', 'subject', 'warmth', 'bloom', 'vignette', 'bgblur'];
+// Familles de teintes (angle OKLab) : [saturation ajoutée, décalage de clarté] à pleine force.
+// Bleus et turquoises plus profonds, jaunes et orangés un peu plus lumineux, orange retenu (peau).
+const BANDS = [
+  { k: 'rouge', h: 27, d: [.1, 0] }, { k: 'orange', h: 58, d: [.04, .015] }, { k: 'jaune', h: 100, d: [.12, .02] }, { k: 'vert', h: 140, d: [.18, -.01] },
+  { k: 'turquoise', h: 195, d: [.22, -.02] }, { k: 'bleu', h: 258, d: [.26, -.05] }, { k: 'violet', h: 302, d: [.18, -.03] }, { k: 'rose', h: 345, d: [.12, 0] },
+];
+const defaultBands = () => { const o = {}; BANDS.forEach((b) => (o[b.k] = b.d.slice())); return o; };
+// Deux styles de lumière. Lumineux : ombres débouchées, image claire et colorée. Dramatique : noirs profonds,
+// contraste fort, lueur dans les hautes lumières. Le style est proposé d'après l'image (terne ou sombre : dramatique).
+const autoStyle = (st) => (st && (st.meanC < .045 || st.med < .36) ? 'dra' : 'lum');
+function levelLook(level, st, style) {
+  const s = LEVELS[level].s;
+  st = st || { lo: .05, med: .5, hi: .95, meanC: .09, meanA: 0, meanB: 0 };
+  style = style || autoStyle(st);
+  const dull = clamp((.095 - st.meanC) / .095, -.55, .7);   // couleurs ternes : on pousse plus ; déjà vives : on retient
+  const flat = clamp((.8 - (st.hi - st.lo)) / .4, 0, 1);     // histogramme étroit : plus de contraste
+  const f = (v) => +v.toFixed(3), lum = style === 'lum';
+  return {
+    level, style, auto: f(Math.min(1, s * 1.3)), exposure: 0, lift: f(lum ? s * .34 : 0),
+    contrast: f(s * (lum ? .16 + .1 * flat : .42 + .12 * flat)), color: f(clamp(s * (lum ? .62 : .5) * (1 + dull * .6), 0, 1.5)),
+    spread: f(s * (lum ? .75 : .5)), pop: f(s), clarity: f(s * (lum ? .22 : .5)), sharpen: f(s * (lum ? .25 : .35)),
+    subject: f(Math.min(1, s * (lum ? .5 : .35))), warmth: 0, bloom: f(s * (lum ? .12 : .2)), vignette: f(s * (lum ? .06 : .3)),
+    bgblur: 0, bands: defaultBands(), note: '',
+  };
+}
 const DEFAULTS = () => ({
   word: SAMPLE.word,
   star: 'auto',
-  text: { x: .5, y: .5, size: 1, curve: .07, persp: 0, stretch: 1.04, spacing: .02, round: .6, weight: .6, starSize: 1, shadow: .65, tint: .32 },
-  look: { preset: 'eclat', ...strip(PRESETS.eclat) },
+  text: { x: .5, y: .31, lock: true, size: 1, curve: .14, splay: .05, persp: 0, stretch: .78, minW: .76, spacing: 0, round: 0, weight: .62, starSize: 1, shadow: .65, glow: 0, tint: .2 },
+  look: levelLook(2),
   subject: { on: true, edge: .45, shadow: .45 },
   brush: { size: 70, mode: 'add' },
 });
-function strip(p) { const o = {}; LOOK_KEYS.forEach((k) => (o[k] = p[k])); return o; }
 
 let S = DEFAULTS();
 try { const saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (saved && saved.text) S = deepMerge(DEFAULTS(), saved); } catch (e) { /* stockage indisponible */ }
@@ -418,46 +460,164 @@ function blurCanvas(source, factor, tag) {
   return cur;
 }
 
-/* ---------- étalonnage (dans l'espace de la source) ---------- */
+/* ---------- retouche couleur (espace source, calcul en OKLab) ----------
+   On travaille en clarté / chroma / teinte perceptuelles : pousser la chroma n'y déplace pas la teinte,
+   et ce qui sort du gamut est ramené vers le gris de même clarté au lieu d'être écrêté. Résultat :
+   des couleurs qui éclatent sans dominante ni effet « filtre ». */
+const SRGB2LIN = new Float32Array(256);
+for (let i = 0; i < 256; i++) { const c = i / 255; SRGB2LIN[i] = c <= .04045 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4); }
+const LIN2SRGB = new Uint8Array(4097);
+for (let i = 0; i <= 4096; i++) { const v = i / 4096; LIN2SRGB[i] = Math.round(255 * (v <= .0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - .055)); }
+let stats = null, gradedIsProxy = false;
+
+// mesure l'image : point noir, médiane, point blanc (clarté OKLab) et chroma moyenne
+function analyzeImage(c) {
+  const w = 192, h = Math.max(2, Math.round(192 * c.height / c.width));
+  const t = pc('analyse', w, h), x = t.getContext('2d');
+  x.drawImage(c, 0, 0, w, h);
+  const d = x.getImageData(0, 0, w, h).data, n = w * h, hist = new Uint32Array(256);
+  const Ls = new Float32Array(n), As = new Float32Array(n), Bs = new Float32Array(n);
+  let sumC = 0, sumA = 0, sumB = 0;
+  for (let i = 0, p = 0; i < n; i++, p += 4) {
+    const r = SRGB2LIN[d[p]], g = SRGB2LIN[d[p + 1]], b = SRGB2LIN[d[p + 2]];
+    const l = Math.cbrt(.4122214708 * r + .5363325363 * g + .0514459929 * b), m = Math.cbrt(.2119034982 * r + .6806995451 * g + .1073969566 * b), s = Math.cbrt(.0883024619 * r + .2817188376 * g + .6299787005 * b);
+    const L = .2104542553 * l + .793617785 * m - .0040720468 * s;
+    const A = 1.9779984951 * l - 2.428592205 * m + .4505937099 * s, B = .0259040371 * l + .7827717662 * m - .808675766 * s;
+    Ls[i] = L; As[i] = A; Bs[i] = B;
+    hist[clamp(Math.round(L * 255), 0, 255)]++; sumC += Math.sqrt(A * A + B * B); sumA += A; sumB += B;
+  }
+  const q = (f) => { let acc = 0; for (let i = 0; i < 256; i++) { acc += hist[i]; if (acc >= f * n) return i / 255; } return 1; };
+  // couleur des lumières moins couleur des ombres : la direction dans laquelle la lumière de CETTE image colore la scène
+  const p30 = q(.3), p70 = q(.7);
+  let ha = 0, hb = 0, hn = 0, sa = 0, sb = 0, sn = 0;
+  for (let i = 0; i < n; i++) { if (Ls[i] >= p70) { ha += As[i]; hb += Bs[i]; hn++; } else if (Ls[i] <= p30) { sa += As[i]; sb += Bs[i]; sn++; } }
+  let dA = hn && sn ? ha / hn - sa / sn : 0, dB = hn && sn ? hb / hn - sb / sn : 0;
+  const dl = Math.sqrt(dA * dA + dB * dB);
+  const gain = dl > .004 ? clamp(.11 / dl, 1, 3.2) : 0;   // image quasi monochrome : on n'invente pas de couleur
+  return { lo: q(.006), med: q(.5), hi: q(.994), meanC: sumC / n, meanA: sumA / n, meanB: sumB / n, dA: dA * gain, dB: dB * gain };
+}
+// 360 entrées : saturation et clarté par teinte, interpolées entre les familles
+function hueTables(look) {
+  const sat = new Float32Array(360), lum = new Float32Array(360), n = BANDS.length, bands = look.bands || {};
+  for (let h = 0; h < 360; h++) {
+    let i = 0; while (i < n && BANDS[i].h <= h) i++;
+    const a = BANDS[(i - 1 + n) % n], b = BANDS[i % n];
+    const ha = i === 0 ? a.h - 360 : a.h, hb = i === n ? b.h + 360 : b.h;
+    let t = (h - ha) / (hb - ha); t = t * t * (3 - 2 * t);
+    const va = bands[a.k] || a.d, vb = bands[b.k] || b.d;
+    sat[h] = (va[0] + (vb[0] - va[0]) * t) * look.pop; lum[h] = (va[1] + (vb[1] - va[1]) * t) * look.pop;
+  }
+  return { sat, lum };
+}
 function renderGraded(proxy) {
   if (!src) return;
-  const base = proxy ? src.small : src.canvas;
-  const w = base.width, h = base.height, n = w * h;
-  const L = S.look;
+  const base = proxy ? src.small : src.canvas, tag = proxy ? 'p' : 'f';
+  const w = base.width, h = base.height, n = w * h, L = S.look, st = stats || { lo: 0, med: .5, hi: 1, meanC: .09, meanA: 0, meanB: 0 };
   const d = rctx(base).getImageData(0, 0, w, h).data;
-  const cl = L.clarity * 0.95, shp = L.sharpen * 1.3, bloom = L.bloom, cine = L.cine;
-  const bL = cl ? rctx(blurCanvas(base, 18, proxy ? 'pl' : 'bl')).getImageData(0, 0, w, h).data : null;
-  const bS = shp ? rctx(blurCanvas(base, 2, proxy ? 'ps' : 'bs')).getImageData(0, 0, w, h).data : null;
-  const bB = bloom ? rctx(blurCanvas(base, 10, proxy ? 'pb' : 'bb')).getImageData(0, 0, w, h).data : null;
-  const ex = Math.pow(2, L.exposure * 1.1);
-  const exR = ex * (1 + L.warmth * 0.11), exG = ex * (1 + L.warmth * 0.025), exB = ex * (1 - L.warmth * 0.13);
-  const c = 1 + L.contrast * 0.62;
-  const sat = 1 + L.color * 0.45, vib = Math.max(0, L.color) * 0.7;
   if (!gradedSrc || gradedSrc.width !== w || gradedSrc.height !== h) { gradedSrc = mk(w, h); rctx(gradedSrc); }
-  const gx = gradedSrc.getContext('2d');
-  const out = gx.createImageData(w, h), o = out.data;
-  const k = 1 / 255;
+  const gx = gradedSrc.getContext('2d'), out = gx.createImageData(w, h), o = out.data;
+  gradedIsProxy = !!proxy;
+  if (LOOK_KEYS.every((k) => k === 'vignette' || k === 'bgblur' || !L[k])) { o.set(d); gx.putImageData(out, 0, 0); return; }
+
+  const cl = L.clarity * .9, shp = L.sharpen * 1.1, bloom = L.bloom, spread = L.spread, lift = L.lift * .9;
+  const bL = cl || spread ? rctx(blurCanvas(base, 20, tag + 'l')).getImageData(0, 0, w, h).data : null;
+  const bS = shp ? rctx(blurCanvas(base, 2, tag + 's')).getImageData(0, 0, w, h).data : null;
+  const bB = bloom ? rctx(blurCanvas(base, 10, tag + 'b')).getImageData(0, 0, w, h).data : null;
+  // le masque du sujet (IA) : le sujet est éclairci et détaillé, le fond retenu
+  const subj = hasMask && maskEdge ? L.subject : 0;
+  let mk8 = null;
+  if (subj > 0) { const mc = pc('gm' + tag, w, h), mx = mc.getContext('2d'); mx.clearRect(0, 0, w, h); mx.drawImage(maskEdge, 0, 0, w, h); mk8 = mx.getImageData(0, 0, w, h).data; }
+  // tonalité automatique : on étire entre le point noir et le point blanc mesurés, puis on ramène la médiane
+  const a = L.auto;
+  // style lumineux (ombres débouchées) : points noir et blanc repris en partie seulement, pour garder de la matière
+  let lo = st.lo * a * (L.lift > 0 ? .7 : 1), hi = 1 - (1 - st.hi) * a * (L.lift > 0 ? .6 : .9);
+  if (hi - lo < .62) { const mid = (hi + lo) / 2; lo = clamp(mid - .31, 0, .38); hi = lo + .62; }
+  const inv = 1 / (hi - lo);
+  const medS = clamp((st.med - lo) * inv, .03, .97);
+  const gamma = L.lift > 0 ? clamp(Math.log(medS + (.58 - medS) * .4 * a) / Math.log(medS), .74, 1.32) : 1;
+  const gA = st.meanA || 0, gB = st.meanB || 0, lA = (st.dA || 0) * 2.2, lB = (st.dB || 0) * 2.2, medL = st.med;
+  const useGamma = Math.abs(gamma - 1) > .01;
+  const ex = Math.pow(2, L.exposure * 1.2);
+  const gr = ex * (1 + L.warmth * .1), gg = ex * (1 + L.warmth * .02), gb = ex * (1 - L.warmth * .12);
+  const con = Math.min(1, L.contrast), conX = 1 + Math.max(0, L.contrast - 1) * .5, col = L.color;
+  const usePop = L.pop > 0, ht = hueTables(L), hSat = ht.sat, hLum = ht.lum;
+  const k = 1 / 255, RAD = 57.29577951;
   for (let i = 0, p = 0; i < n; i++, p += 4) {
-    let r = d[p] * k, g = d[p + 1] * k, b = d[p + 2] * k;
-    if (bL) { r += cl * (r - bL[p] * k); g += cl * (g - bL[p + 1] * k); b += cl * (b - bL[p + 2] * k); }
-    if (bS) { r += shp * (r - bS[p] * k); g += shp * (g - bS[p + 1] * k); b += shp * (b - bS[p + 2] * k); }
-    r *= exR; g *= exG; b *= exB;
-    r = (r - .5) * c + .5; g = (g - .5) * c + .5; b = (b - .5) * c + .5;
-    let lum = .2126 * r + .7152 * g + .0722 * b;
-    const mx = r > g ? (r > b ? r : b) : (g > b ? g : b), mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
-    const f = sat + vib * (1 - Math.min(1, (mx - mn) * 1.6));
-    r = lum + (r - lum) * f; g = lum + (g - lum) * f; b = lum + (b - lum) * f;
-    if (cine) {
-      lum = lum < 0 ? 0 : lum > 1 ? 1 : lum;
-      const s2 = (1 - lum) * (1 - lum) * cine, h2 = lum * lum * cine;
-      r += -0.06 * s2 + 0.075 * h2; g += 0.02 * s2 + 0.025 * h2; b += 0.08 * s2 - 0.07 * h2;
-    }
+    const R8 = d[p], G8 = d[p + 1], B8 = d[p + 2];
+    let r = SRGB2LIN[R8] * gr, g = SRGB2LIN[G8] * gg, b = SRGB2LIN[B8] * gb;
     if (bB) {
-      const br = bB[p] * k, bg = bB[p + 1] * k, bb = bB[p + 2] * k;
-      const t = bloom * Math.max(0, .2126 * br + .7152 * bg + .0722 * bb - .42) * 1.9;
-      if (t > 0) { r = 1 - (1 - r) * (1 - br * t); g = 1 - (1 - g) * (1 - bg * t); b = 1 - (1 - b) * (1 - bb * t); }
+      const t = bloom * Math.max(0, (.2126 * bB[p] + .7152 * bB[p + 1] + .0722 * bB[p + 2]) * k - .5) * 1.7;
+      if (t > 0) { r = 1 - (1 - Math.min(1, r)) * (1 - SRGB2LIN[bB[p]] * t); g = 1 - (1 - Math.min(1, g)) * (1 - SRGB2LIN[bB[p + 1]] * t); b = 1 - (1 - Math.min(1, b)) * (1 - SRGB2LIN[bB[p + 2]] * t); }
     }
-    o[p] = r * 255; o[p + 1] = g * 255; o[p + 2] = b * 255; o[p + 3] = 255;
+    const l_ = Math.cbrt(.4122214708 * r + .5363325363 * g + .0514459929 * b), m_ = Math.cbrt(.2119034982 * r + .6806995451 * g + .1073969566 * b), s_ = Math.cbrt(.0883024619 * r + .2817188376 * g + .6299787005 * b);
+    const L0 = .2104542553 * l_ + .793617785 * m_ - .0040720468 * s_;
+    let A = 1.9779984951 * l_ - 2.428592205 * m_ + .4505937099 * s_, B = .0259040371 * l_ + .7827717662 * m_ - .808675766 * s_;
+    if (spread) {
+      // contraste des couleurs : chaque pixel s'écarte de la teinte moyenne de son voisinage et de celle de l'image.
+      // Ce qui est un peu plus chaud que l'entourage devient franchement doré, ce qui est un peu plus froid, bleu-violet :
+      // la palette de l'image s'ouvre sans qu'on lui impose une couleur.
+      const br = SRGB2LIN[bL[p]] * gr, bg = SRGB2LIN[bL[p + 1]] * gg, bb = SRGB2LIN[bL[p + 2]] * gb;
+      const bl_ = Math.cbrt(.4122214708 * br + .5363325363 * bg + .0514459929 * bb), bm_ = Math.cbrt(.2119034982 * br + .6806995451 * bg + .1073969566 * bb), bs_ = Math.cbrt(.0883024619 * br + .2817188376 * bg + .6299787005 * bb);
+      const bA = 1.9779984951 * bl_ - 2.428592205 * bm_ + .4505937099 * bs_, bB2 = .0259040371 * bl_ + .7827717662 * bm_ - .808675766 * bs_;
+      // les gris et les noirs restent neutres : l'effet est dosé par la couleur déjà présente
+      const c0 = Math.sqrt(A * A + B * B), cg = c0 < .03 ? c0 / .03 : 1;
+      let dL = (L0 - medL) * spread;   // lumières : vers la couleur de la lumière ; ombres : un peu vers son opposé
+      dL *= dL > 0 ? (cg > .5 ? cg : .5) : .5 * cg;
+      const kk = spread * cg;
+      A += kk * ((A - bA) * .22 + (A - gA) * .4) + dL * lA; B += kk * ((B - bB2) * .22 + (B - gB) * .4) + dL * lB;
+    }
+    // tonalité
+    let Lk = (L0 - lo) * inv; if (Lk < 0) Lk = 0; else if (Lk > 1) Lk = 1;
+    if (useGamma) Lk = Math.pow(Lk, gamma);
+    if (lift) Lk += lift * Lk * (1 - Lk) * (1 - Lk);
+    Lk += con * (Lk * Lk * (3 - 2 * Lk) - Lk);
+    if (conX !== 1) Lk = .5 + (Lk - .5) * conX;
+    const m = mk8 ? mk8[p + 3] * k : 0;
+    if (bL || bS) {
+      const Y = .2126 * R8 + .7152 * G8 + .0722 * B8;
+      let det = 0;
+      if (cl) det += cl * (Y - (.2126 * bL[p] + .7152 * bL[p + 1] + .0722 * bL[p + 2]));
+      if (bS) det += shp * (Y - (.2126 * bS[p] + .7152 * bS[p + 1] + .0722 * bS[p + 2]));
+      if (subj) det *= 1 - subj * .35 + subj * .8 * m;
+      const q = 2 * Lk - 1;
+      Lk += det * k * (1 - q * q * q * q);
+    }
+    if (subj) Lk *= 1 + subj * (.1 * m - .05 * (1 - m));
+    // la chroma suit la clarté (sinon l'image paraît délavée quand on éclaircit)
+    let ratio = L0 > 1e-4 ? Lk / L0 : 1; if (ratio > 3) ratio = 3; else if (ratio < 0) ratio = 0;
+    A *= ratio; B *= ratio;
+    const C = Math.sqrt(A * A + B * B);
+    if (C > 1e-5) {
+      // vibrance : les teintes moyennes montent le plus, les gris restent gris, le déjà saturé est ménagé
+      let u = C / .045; if (u > 1) u = 1; let v = (C - .09) / .19; v = v < 0 ? 0 : v > 1 ? 1 : v;
+      let f = 1 + col * (.2 + .85 * u * u * (3 - 2 * u) * (1 - v * v * (3 - 2 * v)));
+      if (usePop) {
+        let hd = Math.atan2(B, A) * RAD; if (hd < 0) hd += 360;
+        const hi2 = hd >= 360 ? 359 : hd | 0, cw = C < .1 ? C * 10 : 1;
+        f *= 1 + hSat[hi2] * cw; Lk += hLum[hi2] * cw;
+      }
+      if (subj) f *= 1 + subj * .1 * m;
+      if (f < 0) f = 0;
+      A *= f; B *= f;
+    }
+    if (Lk < 0) Lk = 0; else if (Lk > 1) Lk = 1;
+    let l3 = Lk + .3963377774 * A + .2158037573 * B, m3 = Lk - .1055613458 * A - .0638541728 * B, s3 = Lk - .0894841775 * A - 1.291485548 * B;
+    l3 = l3 * l3 * l3; m3 = m3 * m3 * m3; s3 = s3 * s3 * s3;
+    r = 4.0767416621 * l3 - 3.3077115913 * m3 + .2309699292 * s3;
+    g = -1.2684380046 * l3 + 2.6097574011 * m3 - .3413193965 * s3;
+    b = -.0041960863 * l3 - .7034186147 * m3 + 1.707614701 * s3;
+    const mn = r < g ? (r < b ? r : b) : (g < b ? g : b), mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+    if (mn < 0 || mx > 1) { // hors gamut : on revient vers le gris de même clarté, la teinte ne bouge pas
+      const gray = Lk * Lk * Lk; let t = 1;
+      if (mn < 0) t = gray / (gray - mn);
+      if (mx > 1) { const t2 = (1 - gray) / (mx - gray); if (t2 < t) t = t2; }
+      if (!(t > 0)) t = 0;
+      r = gray + (r - gray) * t; g = gray + (g - gray) * t; b = gray + (b - gray) * t;
+    }
+    o[p] = LIN2SRGB[(r < 0 ? 0 : r > 1 ? 1 : r) * 4096 + .5 | 0];
+    o[p + 1] = LIN2SRGB[(g < 0 ? 0 : g > 1 ? 1 : g) * 4096 + .5 | 0];
+    o[p + 2] = LIN2SRGB[(b < 0 ? 0 : b > 1 ? 1 : b) * 4096 + .5 | 0];
+    o[p + 3] = 255;
   }
   gx.putImageData(out, 0, 0);
 }
@@ -487,6 +647,16 @@ function renderImageLayer() {
   }
   ilx.imageSmoothingQuality = 'high';
   ilx.drawImage(gradedSrc, r.x, r.y, r.dw, r.dh);
+  const bl = S.look.bgblur;
+  if (bl > 0 && hasMask && maskEdge) {
+    // profondeur de champ : le fond est adouci, le sujet détouré reste net
+    const sharp = pc('sharp', W, H), shx = sharp.getContext('2d');
+    shx.globalCompositeOperation = 'source-over'; shx.clearRect(0, 0, W, H); shx.drawImage(imageLayer, 0, 0);
+    shx.globalCompositeOperation = 'destination-in'; shx.drawImage(maskEdge, r.x, r.y, r.dw, r.dh);
+    shx.globalCompositeOperation = 'source-over';
+    ilx.drawImage(blurCanvas(imageLayer, 1.6 + bl * 9, 'bgb'), 0, 0);
+    ilx.drawImage(sharp, 0, 0);
+  }
   const v = S.look.vignette;
   if (v > 0) {
     const g = ilx.createRadialGradient(W / 2, H * .47, H * .28, W / 2, H * .5, W * .72);
@@ -528,6 +698,8 @@ function rebuildMaskEdge() {
 
 /* ---------- typographie : Anton + étoile + courbure ---------- */
 const FONT = '"Anton"';
+const WEIGHT_K = .06;   // graisse : épaisseur de contour ajoutée, en fraction de la hauteur de capitale
+const FIXED_Y = .31;    // position fixe du mot : centré en largeur, dans le tiers haut
 function starPath(x, cx, cy, w, h) {
   const rx = w / 2, ry = h / 2, kx = rx * .16, ky = ry * .16;
   x.beginPath();
@@ -627,7 +799,7 @@ function boxBlur(src, dst, w, h, r) {
   }
 }
 function roundAndWeight(c, roundPx, dilPx) {
-  if (roundPx < .6 && dilPx < .3) return;
+  if (roundPx < .6) return;
   const w = c.width, h = c.height, N = w * h, x = c.getContext('2d');
   const id = x.getImageData(0, 0, w, h), d = id.data;
   const a = new Float32Array(N), tmp = new Float32Array(N);
@@ -649,12 +821,16 @@ function buildText() {
   const m = rctx(pc('measure', 8, 8));
   const ref = 200; m.font = `${ref}px ${FONT}`;
   const capRef = m.measureText('H').actualBoundingBoxAscent || ref * .72;
-  const advRef = m.measureText(word).width * T.stretch + T.spacing * ref * (chars.length - 1);
-  const k = Math.min((W * .7) / advRef, (H * .56) / capRef) * T.size;
+  const dilRef = T.weight * capRef * WEIGHT_K;
+  const advRef = m.measureText(word).width * T.stretch + (T.spacing * ref + dilRef * .6) * (chars.length - 1) + dilRef * 2;
+  // mot massif : il vise 88 % de la largeur ou 60 % de la hauteur de l'image ;
+  // un mot court est élargi (lettres étirées) jusqu'à la largeur minimale, comme « TOI »
+  const k = Math.min((W * .88) / (advRef * (1 + T.splay * .9)), (H * .6) / capRef) * T.size;
+  const widen = clamp((W * T.minW * T.size) / (advRef * k), 1, 2.3);
   const F = Math.max(10, ref * k);
   m.font = `${F}px ${FONT}`;
   const capH = m.measureText('H').actualBoundingBoxAscent || F * .72;
-  const roundPx = T.round * capH * .042, dilPx = T.weight * capH * .03;
+  const roundPx = T.round * capH * .042, dilPx = T.weight * capH * WEIGHT_K;
   const pad = Math.ceil(F * .05 + dilPx * 2 + roundPx * 2);
   const glyphs = chars.map((ch, i) => {
     const mt = m.measureText(ch);
@@ -662,8 +838,10 @@ function buildText() {
     const l = Math.ceil(mt.actualBoundingBoxLeft), r = Math.ceil(mt.actualBoundingBoxRight);
     const c = mk(l + r + pad * 2, asc + desc + pad * 2), g = rctx(c);
     g.font = m.font; g.fillStyle = '#fff'; g.textBaseline = 'alphabetic';
+    // graisse : contour à angles vifs (onglet), pour épaissir sans arrondir
+    if (dilPx > .2) { g.strokeStyle = '#fff'; g.lineJoin = 'miter'; g.miterLimit = 2.4; g.lineWidth = dilPx * 2; g.strokeText(ch, pad + l, pad + asc); }
     g.fillText(ch, pad + l, pad + asc);
-    return { ch, c, x0: m.measureText(chars.slice(0, i).join('')).width, ox: pad + l, oy: pad + asc, adv: mt.width, inkX: pad, inkW: l + r };
+    return { ch, c, x0: m.measureText(chars.slice(0, i).join('')).width, ox: pad + l, oy: pad + asc, adv: mt.width, inkX: pad - dilPx, inkW: l + r + dilPx * 2 };
   });
   // repérage des lettres à creux (pour l'étoile automatique et les pastilles)
   glyphs.forEach((g) => { g.info = g.ch.trim() ? analyzeHoles(g.c) : { hole: null }; });
@@ -673,7 +851,7 @@ function buildText() {
   let star = null;
   if (starIdx >= 0) { fillHole(glyphs[starIdx]); star = starGeom(glyphs[starIdx], capH, T.starSize); }
 
-  const stretch = T.stretch, sp = T.spacing * F;
+  const stretch = T.stretch * widen, sp = T.spacing * F + dilPx * .6;
   const totalW = m.measureText(word).width * stretch + sp * (chars.length - 1);
   const maxAsc = Math.max(...glyphs.map((g) => g.oy)), maxDesc = Math.max(...glyphs.map((g) => g.c.height - g.oy));
   const margin = pad * 2;
@@ -683,7 +861,7 @@ function buildText() {
   const baseline = maxAsc;
   const gx = (g, i) => margin + g.x0 * stretch + i * sp - g.ox * stretch;
   glyphs.forEach((g, i) => wx.drawImage(g.c, gx(g, i), baseline - g.oy, g.c.width * stretch, g.c.height));
-  roundAndWeight(wc, roundPx, dilPx);
+  roundAndWeight(wc, roundPx, 0);
   if (star) {
     const g = glyphs[starIdx];
     wx.globalCompositeOperation = 'destination-out';
@@ -691,19 +869,33 @@ function buildText() {
     wx.globalCompositeOperation = 'source-over';
   }
 
-  // courbure (bords plus hauts que le centre) + perspective (un côté plus grand)
-  const cx0 = margin + totalW / 2, cy0 = baseline - capH / 2;
-  const sAt = (u) => (1 + T.curve * u * u) * (1 + T.persp * u);
-  let smax = 0; for (let u = -1.15; u <= 1.151; u += .05) smax = Math.max(smax, sAt(u));
-  const th = Math.ceil(wh * smax) + 4;
-  const tc = mk(ww, th), tx = tc.getContext('2d');
-  const cyT = cy0 * smax + 2;
-  tx.imageSmoothingQuality = 'high';
+  // forme du bloc, relevée sur les miniatures de référence : une arche (le bas remonte au centre,
+  // les lettres des bords descendent plus bas), un haut à peine bombé, puis un évasement vers le bas
+  const cx0 = margin + totalW / 2, capTop = baseline - capH;
+  // l'arche se mesure en hauteur d'image (comme sur les références) : aux bords, le bas descend de T.curve × H,
+  // le haut de 38 % de cette valeur. Un mot court et haut paraît donc moins déformé qu'un mot long.
+  const bowPx = T.curve * H, topPx = bowPx * .38;
+  const sAt = (u) => (1 + (bowPx - topPx) / capH * u * u) * (1 + T.persp * u);
+  const yTopAt = (u) => topPx * u * u;
+  let above = 0, below = 0;
+  for (let u = -1.15; u <= 1.151; u += .05) { const s = sAt(u); above = Math.max(above, capTop * s - yTopAt(u)); below = Math.max(below, (wh - capTop) * s + yTopAt(u)); }
+  const A = Math.ceil(above) + 2, th = A + Math.ceil(below) + 2; // A : ligne du haut des capitales, au centre
+  const vc = pc('wordV', ww, th), vx = vc.getContext('2d');
+  vx.clearRect(0, 0, ww, th); vx.imageSmoothingQuality = 'high';
   for (let x = 0; x < ww; x++) {
     const u = clamp((x + .5 - cx0) / (totalW / 2), -1.15, 1.15), s = sAt(u);
-    tx.drawImage(wc, x, 0, 1, wh, x, cyT - cy0 * s, 1, wh * s);
+    vx.drawImage(wc, x, 0, 1, wh, x, A + yTopAt(u) - capTop * s, 1, wh * s);
   }
-  textInfo = { canvas: tc, cx: cx0, cy: cyT, capH, inkW: totalW, F, starIdx, glyphs: glyphs.map((g) => ({ ch: g.ch, hole: !!g.info.hole })) };
+  const splay = T.splay, fMax = Math.max(1, 1 + splay * (th - A) / capH, 1 - splay * A / capH);
+  const ow = Math.ceil(ww * fMax) + 2;
+  const tc = mk(ow, th), tx = tc.getContext('2d');
+  tx.imageSmoothingQuality = 'high';
+  if (Math.abs(splay) < .002) tx.drawImage(vc, (ow - ww) / 2, 0);
+  else for (let y = 0; y < th; y++) {
+    const f = Math.max(.2, 1 + splay * (y - A) / capH);
+    tx.drawImage(vc, 0, y, ww, 1, ow / 2 - cx0 * f, y, ww * f, 1);
+  }
+  textInfo = { canvas: tc, cx: ow / 2, cy: A + capH / 2, capH, dil: dilPx, inkW: totalW, F, starIdx, glyphs: glyphs.map((g) => ({ ch: g.ch, hole: !!g.info.hole })) };
   renderStarChips();
 }
 
@@ -757,6 +949,13 @@ function composite() {
     tax.fillStyle = g; tax.fillRect(0, 0, W, H);
     tax.globalCompositeOperation = 'source-over';
     const sh = T.shadow, shade = mix([4, 6, 14], ambient, .12), k = textInfo.F / 400;
+    if (T.glow > 0) { // halo lumineux, teinté par la scène
+      fctx.save();
+      fctx.shadowColor = rgb(mix(white, ambient, .45), Math.min(1, .55 + T.glow * .45)); fctx.shadowBlur = (70 * k + 10) * T.glow; fctx.shadowOffsetY = 0;
+      fctx.drawImage(txtA, 0, 0); fctx.drawImage(txtA, 0, 0);
+      fctx.shadowBlur = (16 * k + 4) * T.glow; fctx.drawImage(txtA, 0, 0);
+      fctx.restore();
+    }
     if (sh > 0) {
       fctx.save();
       fctx.shadowColor = rgb(shade, .62 * sh); fctx.shadowBlur = 90 * sh * k + 6; fctx.shadowOffsetY = 26 * sh * k;
@@ -821,6 +1020,13 @@ function drawFeeds() {
   });
 }
 
+// position fixe : centré en largeur, dans le tiers haut ; un mot très haut descend juste assez pour ne pas être rogné
+function applyFixedPosition() {
+  if (!S.text.lock || !textInfo) return;
+  S.text.x = .5;
+  S.text.y = Math.max(FIXED_Y, (.035 * H + textInfo.dil + textInfo.capH / 2) / H);
+}
+
 /* ---------- boucle de rendu ---------- */
 const dirty = { grade: true, proxy: false, frame: true, mask: false, text: true };
 let raf = 0;
@@ -831,10 +1037,10 @@ function invalidate(...stages) {
 function renderNow() {
   raf = 0;
   if (!src) return;
-  if (dirty.mask) { rebuildMaskEdge(); dirty.mask = false; dirty.frame = true; }
+  if (dirty.mask) { rebuildMaskEdge(); dirty.mask = false; dirty.frame = true; if (S.look.subject > 0) dirty.grade = true; }
   if (dirty.grade || dirty.proxy) { renderGraded(!dirty.grade); dirty.grade = dirty.proxy = false; dirty.frame = true; }
   if (dirty.frame) { renderImageLayer(); dirty.frame = false; scheduleAmbient(); }
-  if (dirty.text) { buildText(); dirty.text = false; scheduleAmbient(); }
+  if (dirty.text) { buildText(); dirty.text = false; applyFixedPosition(); scheduleAmbient(); }
   composite();
 }
 
@@ -849,6 +1055,9 @@ function setSource(img, keepFrame) {
   const small = mk(w * ks, h * ks), sxx = rctx(small);
   sxx.imageSmoothingQuality = 'high'; sxx.drawImage(c, 0, 0, small.width, small.height);
   src = { canvas: c, w, h, small };
+  stats = analyzeImage(small);
+  if (typeof S.look.level === 'number') S.look = levelLook(S.look.level, stats); else if (S.look.level === 'ia') S.look = levelLook(2, stats);   // style relu sur la nouvelle image
+  renderLevels(); syncSliders(); renderAnalysis();
   maskRaw = mk(w, h); rctx(maskRaw); maskEdge = null; hasMask = false; undoStack.length = 0;
   if (!keepFrame) frame = { zoom: 1, ox: 0, oy: 0 };
   syncFrameSliders();
@@ -860,7 +1069,7 @@ function setMaskFromImage(m) {
   x.imageSmoothingQuality = 'high';
   x.drawImage(m, 0, 0, maskRaw.width, maskRaw.height);
   hasMask = true;
-  invalidate('mask');
+  invalidate('mask'); renderAnalysis();
 }
 async function loadImage(url) { const im = new Image(); im.decoding = 'async'; im.src = url; await im.decode(); return im; }
 async function loadFile(file) {
@@ -1119,7 +1328,10 @@ wrap.addEventListener('pointerdown', (e) => {
   wrap.setPointerCapture(e.pointerId);
   const p = toCanvas(e);
   dragging = true; wrap.classList.add('dragging');
-  if (mode === 'text') drag = { p, x: S.text.x, y: S.text.y };
+  if (mode === 'text') {
+    if (S.text.lock) { dragging = false; wrap.classList.remove('dragging'); toast('Le mot garde sa position fixe. Décoche « Position fixe » dans Lettrage pour le déplacer.'); return; }
+    drag = { p, x: S.text.x, y: S.text.y };
+  }
   else if (mode === 'image') drag = { p, ox: frame.ox, oy: frame.oy };
   else {
     if (!maskEdge) { rebuildMaskEdge(); }
@@ -1159,12 +1371,12 @@ wrap.addEventListener('wheel', (e) => {
 wrap.addEventListener('keydown', (e) => {
   const step = e.shiftKey ? .02 : .005;
   const map = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
-  if (map[e.key] && mode === 'text') { e.preventDefault(); S.text.x += map[e.key][0]; S.text.y += map[e.key][1]; save(); scheduleAmbient(); invalidate(); }
+  if (map[e.key] && mode === 'text' && !S.text.lock) { e.preventDefault(); S.text.x += map[e.key][0]; S.text.y += map[e.key][1]; save(); scheduleAmbient(); invalidate(); }
 });
 function setMode(m) {
   mode = m; wrap.dataset.mode = m;
   document.querySelectorAll('.seg [data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
-  $('#modeHint').textContent = { text: 'Glisse sur l\'image pour placer le mot. Molette : taille.', image: 'Glisse pour recadrer. Molette : zoom.', brush: 'Peins ce qui doit passer devant le mot. Molette : taille du pinceau.' }[m];
+  $('#modeHint').textContent = { text: S.text.lock ? 'Le mot garde sa position fixe. Molette : taille.' : 'Glisse sur l\'image pour placer le mot. Molette : taille.', image: 'Glisse pour recadrer. Molette : zoom.', brush: 'Peins ce qui doit passer devant le mot. Molette : taille du pinceau.' }[m];
   if (m === 'brush') $('#brushTools').hidden = false;
   drawOverlay();
 }
@@ -1206,35 +1418,130 @@ addSlider('#brushSliders', 'brushSize', 'Taille du pinceau', 8, 260, 1, () => S.
 addSlider('#subjectSliders', 'edge', 'Contour du sujet', 0, 1, .01, () => S.subject.edge, (v) => { S.subject.edge = v; }, (v) => (v < .25 ? 'net ' : v > .7 ? 'doux ' : '') + pct(v), () => invalidate('mask'));
 addSlider('#subjectSliders', 'subjShadow', 'Ombre du sujet sur le mot', 0, 1, .01, () => S.subject.shadow, (v) => { S.subject.shadow = v; }, pct, () => invalidate());
 
-const LOOK_LABELS = { exposure: 'Lumière', contrast: 'Contraste', color: 'Couleurs', warmth: 'Chaleur', clarity: 'Relief', sharpen: 'Netteté', bloom: 'Lueur', vignette: 'Vignette', cine: 'Teinte ciné' };
-const LOOK_RANGE = { exposure: [-1, 1], contrast: [-1, 1], color: [-1, 1], warmth: [-1, 1], clarity: [0, 1], sharpen: [0, 1], bloom: [0, 1], vignette: [0, 1], cine: [0, 1] };
-LOOK_KEYS.forEach((k) => addSlider('#lookSliders', 'look-' + k, LOOK_LABELS[k], LOOK_RANGE[k][0], LOOK_RANGE[k][1], .01,
-  () => S.look[k], (v) => { S.look[k] = v; S.look.preset = 'perso'; renderPresets(); }, LOOK_RANGE[k][0] < 0 ? signed : pct,
-  () => invalidate('proxy'), () => invalidate('grade')));
+const LOOK_UI = {
+  auto: ['Correction automatique', 0, 1, pct], exposure: ['Lumière', -1, 1, signed], lift: ['Ombres débouchées', 0, 1, pct], contrast: ['Contraste', -.5, 1.4, signed], color: ['Couleurs', -1, 1.5, signed],
+  spread: ['Contraste des couleurs', 0, 1.6, pct],
+  pop: ['Profondeur des teintes', 0, 1.5, pct], clarity: ['Relief', 0, 1.5, pct], sharpen: ['Netteté', 0, 1.5, pct], subject: ['Sujet mis en avant', 0, 1, pct],
+  warmth: ['Chaleur', -1, 1, signed], bloom: ['Lueur', 0, 1, pct], vignette: ['Vignette', 0, 1, pct], bgblur: ['Flou de l\'arrière-plan', 0, 1, pct],
+};
+LOOK_KEYS.forEach((k) => {
+  const u = LOOK_UI[k], stage = k === 'vignette' || k === 'bgblur' ? 'frame' : null;
+  addSlider('#lookSliders', 'look-' + k, u[0], u[1], u[2], .01, () => S.look[k],
+    (v) => { S.look[k] = v; if (S.look.level !== 'perso') { S.look.level = 'perso'; renderLevels(); renderAnalysis(); } }, u[3],
+    () => invalidate(stage || 'proxy'), () => invalidate(stage || 'grade'));
+});
 
 addSlider('#textSliders', 'size', 'Taille', .4, 1.8, .01, () => S.text.size, (v) => { S.text.size = v; }, pct, () => invalidate('text'));
 addSlider('#textSliders', 'shadow', 'Ombre portée', 0, 1, .01, () => S.text.shadow, (v) => { S.text.shadow = v; }, pct, () => invalidate());
+addSlider('#textSliders', 'glow', 'Halo lumineux', 0, 1, .01, () => S.text.glow, (v) => { S.text.glow = v; }, pct, () => invalidate());
 addSlider('#textSliders', 'tint', 'Reflet de la scène', 0, 1, .01, () => S.text.tint, (v) => { S.text.tint = v; }, pct, () => invalidate());
-addSlider('#shapeSliders', 'curve', 'Courbure', -.5, .6, .01, () => S.text.curve, (v) => { S.text.curve = v; }, signed, () => invalidate('text'));
+addSlider('#shapeSliders', 'curve', 'Arche (mot incurvé)', -.1, .3, .005, () => S.text.curve, (v) => { S.text.curve = v; }, signed, () => invalidate('text'));
+addSlider('#shapeSliders', 'splay', 'Évasement vers le bas', 0, .35, .005, () => S.text.splay, (v) => { S.text.splay = v; }, (v) => Math.round(v * 100) + ' %', () => invalidate('text'));
+addSlider('#shapeSliders', 'minW', 'Largeur minimale du mot', .3, .9, .01, () => S.text.minW, (v) => { S.text.minW = v; }, pct, () => invalidate('text'));
 addSlider('#shapeSliders', 'persp', 'Perspective', -.35, .35, .01, () => S.text.persp, (v) => { S.text.persp = v; }, signed, () => invalidate('text'));
-addSlider('#shapeSliders', 'stretch', 'Largeur des lettres', .8, 1.3, .01, () => S.text.stretch, (v) => { S.text.stretch = v; }, pct, () => invalidate('text'));
+addSlider('#shapeSliders', 'stretch', 'Largeur des lettres', .6, 1.3, .01, () => S.text.stretch, (v) => { S.text.stretch = v; }, pct, () => invalidate('text'));
 addSlider('#shapeSliders', 'spacing', 'Espacement', -.05, .12, .002, () => S.text.spacing, (v) => { S.text.spacing = v; }, (v) => (v * 100).toFixed(1), () => invalidate('text'));
 addSlider('#shapeSliders', 'weight', 'Graisse', 0, 1, .01, () => S.text.weight, (v) => { S.text.weight = v; }, pct, () => invalidate('text'));
 addSlider('#shapeSliders', 'round', 'Arrondi des angles', 0, 1, .01, () => S.text.round, (v) => { S.text.round = v; }, pct, () => invalidate('text'));
 addSlider('#shapeSliders', 'starSize', 'Taille de l\'étoile', .6, 1.5, .01, () => S.text.starSize, (v) => { S.text.starSize = v; }, pct, () => invalidate('text'));
 
-/* ambiances */
-function renderPresets() {
-  const box = $('#presets');
+/* niveaux de retouche */
+function renderLevels() {
+  const box = $('#levels');
   if (!box.children.length) {
-    Object.entries(PRESETS).forEach(([k, p]) => {
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = p.label; b.dataset.k = k;
-      b.addEventListener('click', () => { S.look = { preset: k, ...strip(PRESETS[k]) }; renderPresets(); syncSliders(); save(); invalidate('grade'); });
+    LEVELS.forEach((lv, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'level'; b.dataset.i = i;
+      b.innerHTML = `<i style="--s:${[6, 32, 60, 82, 100][i]}%"></i><span>${lv.label}</span>`;
+      b.addEventListener('click', () => setLevel(i));
       box.appendChild(b);
     });
   }
-  [...box.children].forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === S.look.preset)));
+  [...box.children].forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.i === S.look.level)));
+  $('#styleLum').setAttribute('aria-pressed', String(S.look.style !== 'dra')); $('#styleDra').setAttribute('aria-pressed', String(S.look.style === 'dra'));
+  $('#styleHint').textContent = stats && S.look.style === autoStyle(stats) ? 'proposé d\'après l\'image' : '';
+  $('#levelName').textContent = S.look.level === 'perso' ? 'Réglage personnel' : S.look.level === 'ia' ? 'Réglé par Claude' : `Niveau ${S.look.level} sur 4`;
 }
+function setLevel(i, style) { S.look = levelLook(i, stats, style || S.look.style); renderLevels(); syncSliders(); renderAnalysis(); save(); invalidate('grade'); }
+function setStyle(st) { setLevel(typeof S.look.level === 'number' ? S.look.level : 2, st); }
+$('#styleLum').addEventListener('click', () => setStyle('lum'));
+$('#styleDra').addEventListener('click', () => setStyle('dra'));
+function renderAnalysis() {
+  const el = $('#analysis');
+  if (!stats) { el.textContent = ''; return; }
+  if (S.look.level === 'ia' && S.look.note) { el.textContent = 'Claude : ' + S.look.note; return; }
+  const bits = [stats.med < .38 ? 'image sombre' : stats.med > .72 ? 'image très claire' : 'exposition équilibrée',
+    stats.meanC < .06 ? 'couleurs ternes' : stats.meanC > .125 ? 'couleurs déjà vives' : 'couleurs moyennes'];
+  if (stats.hi - stats.lo < .72) bits.push('contraste faible');
+  let t = 'Analyse : ' + bits.join(', ') + '.';
+  if (typeof S.look.level === 'number' && S.look.level > 0) t += ` Dosage adapté : couleurs ${signed(S.look.color)}, contraste ${signed(S.look.contrast)}${hasMask && S.look.subject > 0 ? ', sujet éclairci, fond retenu' : ''}.`;
+  el.textContent = t;
+}
+
+/* direction des couleurs par Claude (facultatif : seulement si la vue le permet) */
+let sampleFn = null, aiCtl = null;
+(async () => {
+  try {
+    const s = window.claude && window.claude.use ? await window.claude.use('sample') : null;
+    if (!s) return;
+    const lim = await s.limits().catch(() => null);
+    if (!lim || !lim.images) return;
+    sampleFn = s; $('#aiRow').hidden = false;
+  } catch (e) { /* indisponible : la retouche par niveaux suffit */ }
+})();
+const aiPrompt = (st) => `Tu es étalonneur. L'image jointe est l'image d'origine (non retouchée) d'une miniature YouTube ; un grand mot blanc sera placé derrière le sujet principal.
+Choisis les réglages qui font éclater les couleurs tout en gardant une image propre : pas de dominante colorée, pas d'effet « filtre », des teintes fidèles, un sujet qui ressort du fond.
+Mesures de l'image (échelle 0 à 1) : clarté médiane ${st.med.toFixed(2)}, point noir ${st.lo.toFixed(2)}, point blanc ${st.hi.toFixed(2)}, saturation moyenne ${st.meanC.toFixed(3)} (0.05 = terne, 0.13 = vif).
+Réponds uniquement par un objet JSON avec ces champs :
+- "exposure" : -0.6 à 0.6 (0 = inchangé, positif = plus clair)
+- "contrast" : 0 à 1 (0.25 = modéré, 0.45 = fort)
+- "color" : 0 à 1.3, vibrance globale (0.45 = éclatant, 0.8 = très poussé)
+- "spread" : 0 à 1.4, contraste des couleurs : écarte les teintes chaudes et froides les unes des autres (0.6 = normal)
+- "lift" : 0 à 1, débouche les ombres (0.3 = normal)
+- "pop" : 0 à 1.5, force des réglages par teinte (1 = normal)
+- "clarity" : 0 à 1.2, relief et micro-contraste (0.3 = normal)
+- "subject" : 0 à 1, éclaircit le sujet et assombrit le fond (0.4 = normal)
+- "warmth" : -0.4 à 0.4 (0 sauf si la balance des blancs est fausse)
+- "vignette" : 0 à 0.6
+- "bands" : pour chacune des familles rouge, orange, jaune, vert, turquoise, bleu, violet, rose, un couple [s, l] où s est la saturation ajoutée (-0.3 à 0.7) et l le décalage de clarté (-0.15 à 0.15). Pousse les teintes qui portent l'image (ciel, objets colorés), retiens l'orange s'il y a de la peau.
+- "note" : une phrase courte en français qui dit ce que tu as choisi et pourquoi
+Exemple : {"exposure":0.1,"contrast":0.25,"color":0.5,"spread":0.6,"lift":0.3,"pop":1,"clarity":0.3,"subject":0.45,"warmth":0,"vignette":0.15,"bands":{"rouge":[0.15,0],"orange":[0.02,0.02],"jaune":[0.2,0.03],"vert":[0.15,0],"turquoise":[0.2,-0.02],"bleu":[0.35,-0.06],"violet":[0.2,-0.03],"rose":[0.15,0]},"note":"Ciel bleu approfondi et ballons saturés, sujet légèrement éclairci."}`;
+function applyDirection(r) {
+  if (!r || typeof r !== 'object' || Array.isArray(r)) throw { code: 'invalid_json' };
+  const num = (v, a, b, d) => (typeof v === 'number' && isFinite(v) ? clamp(v, a, b) : d);
+  const base = levelLook(typeof S.look.level === 'number' && S.look.level > 0 ? S.look.level : 2, stats, S.look.style);
+  const bands = defaultBands();
+  if (r.bands && typeof r.bands === 'object') BANDS.forEach((b) => { const v = r.bands[b.k]; if (Array.isArray(v)) bands[b.k] = [num(v[0], -.3, .7, b.d[0]), num(v[1], -.15, .15, b.d[1])]; });
+  S.look = { ...base, level: 'ia', bands,
+    exposure: num(r.exposure, -.6, .6, 0), contrast: num(r.contrast, 0, 1, base.contrast), color: num(r.color, 0, 1.3, base.color), pop: num(r.pop, 0, 1.5, base.pop),
+    spread: num(r.spread, 0, 1.4, base.spread), lift: num(r.lift, 0, 1, base.lift),
+    clarity: num(r.clarity, 0, 1.2, base.clarity), subject: num(r.subject, 0, 1, base.subject), warmth: num(r.warmth, -.4, .4, 0), vignette: num(r.vignette, 0, .6, base.vignette),
+    note: typeof r.note === 'string' ? r.note.slice(0, 240) : '' };
+  renderLevels(); syncSliders(); renderAnalysis(); save(); invalidate('grade');
+}
+async function askClaude() {
+  if (!sampleFn || !src) return;
+  const btn = $('#aiBtn'), msg = $('#aiMsg');
+  if (aiCtl) { aiCtl.abort(); return; }
+  aiCtl = new AbortController();
+  btn.textContent = 'Arrêter'; msg.hidden = false; msg.classList.remove('warn'); msg.textContent = 'Claude regarde l\'image… (5 à 60 s)';
+  try {
+    const blob = await toBlob(src.small, 'image/jpeg', .85);
+    const res = await sampleFn.json(aiPrompt(stats || analyzeImage(src.small)), { images: blob, signal: aiCtl.signal, modelTier: 'default' });
+    applyDirection(res);
+    msg.hidden = true;
+  } catch (e) {
+    const code = e && e.code;
+    if (code === 'cancelled') msg.hidden = true;
+    else {
+      msg.classList.add('warn');
+      msg.textContent = code === 'not_granted' ? 'Accès à Claude refusé. La retouche par niveaux reste disponible.'
+        : code === 'rate_limited' ? 'Trop de demandes pour le moment. Réessaie dans un instant.'
+        : 'Claude n\'a pas pu régler cette image. La retouche par niveaux reste disponible.';
+      if (code === 'not_granted') $('#aiRow').hidden = true;
+    }
+  } finally { aiCtl = null; btn.textContent = 'Faire régler par Claude'; }
+}
+$('#aiBtn').addEventListener('click', askClaude);
 
 /* étoile : pastilles des lettres */
 function renderStarChips() {
@@ -1280,15 +1587,20 @@ $('#brushOpen').addEventListener('click', () => setMode('brush'));
 $('#brushAdd').addEventListener('click', () => setBrushMode('add'));
 $('#brushRemove').addEventListener('click', () => setBrushMode('remove'));
 function setBrushMode(m, quiet) { S.brush.mode = m; $('#brushAdd').setAttribute('aria-pressed', String(m === 'add')); $('#brushRemove').setAttribute('aria-pressed', String(m === 'remove')); if (!quiet && mode !== 'brush') setMode('brush'); save(); }
-setBrushMode(S.brush.mode, true); setMode('text');
+setBrushMode(S.brush.mode, true); setMode(S.text.lock ? 'image' : 'text');
 $('#undoBtn').addEventListener('click', undo);
 $('#clearMask').addEventListener('click', () => { if (!maskRaw) return; pushUndo(); maskRaw.getContext('2d').clearRect(0, 0, maskRaw.width, maskRaw.height); hasMask = false; invalidate('mask'); setPill('', 'Aucun sujet devant'); });
 window.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && document.activeElement !== wordInput) { e.preventDefault(); undo(); } });
 
-$('#centerText').addEventListener('click', () => { S.text.x = .5; S.text.y = .5; save(); scheduleAmbient(); invalidate(); });
+$('#lockText').checked = S.text.lock;
+$('#lockText').addEventListener('change', (e) => {
+  S.text.lock = e.target.checked;
+  if (S.text.lock) applyFixedPosition(); else setMode('text');
+  setMode(mode); save(); scheduleAmbient(); invalidate();
+});
 $('#resetAll').addEventListener('click', () => {
-  const word = S.word; S = DEFAULTS(); S.word = word; S.text.y = .5;
-  $('#subjectOn').checked = true; syncSliders(); renderPresets(); setBrushMode('add', true); setMode('text'); save(); invalidate('grade', 'mask', 'text');
+  const word = S.word; S = DEFAULTS(); S.word = word; S.look = levelLook(2, stats);
+  $('#subjectOn').checked = true; $('#lockText').checked = true; syncSliders(); renderLevels(); renderAnalysis(); setBrushMode('add', true); setMode('image'); save(); invalidate('grade', 'mask', 'text');
 });
 
 /* ---------- export ---------- */
@@ -1301,8 +1613,9 @@ function fileName(ext) {
 }
 async function exportImage(kind) {
   if (!src) return;
-  if (raf) { cancelAnimationFrame(raf); renderNow(); }
-  if (dirty.proxy === false && sliders) { /* rendu à jour */ }
+  if (gradedIsProxy) dirty.grade = true;
+  if (raf) cancelAnimationFrame(raf);
+  renderNow();
   let blob, q = .95;
   if (kind === 'png') blob = await toBlob(finalC, 'image/png');
   else {
@@ -1332,7 +1645,7 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = fal
 function setPill(state, text) { const p = $('#subjectPill'); p.className = 'pill ' + state; $('#subjectPillText').textContent = text; }
 
 /* ---------- démarrage ---------- */
-renderPresets();
+renderLevels();
 renderStarChips();
 (async () => {
   try { await Promise.race([document.fonts.load(`120px ${FONT}`, 'ÉÊOUBLIRVNS'), new Promise((r) => setTimeout(r, 3000))]); } catch (e) {}

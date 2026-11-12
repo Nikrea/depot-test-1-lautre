@@ -11,23 +11,48 @@ Page publiée : https://claude.ai/artifact/TkmFJYUKrmxT6Wh4JWoufa
 1. **Choisir une image** (ou la glisser / la coller). Le sujet est détouré automatiquement par une IA qui
    tourne dans le navigateur : l'image ne quitte pas l'appareil. Le modèle (56 Mo) se télécharge au premier
    détourage, puis l'analyse prend 10 à 30 s.
-2. **Taper le mot.** L'étoile se place seule dans la première lettre qui a un creux (O, R, A, D, P, B, Q…) ;
-   les pastilles permettent de choisir une autre lettre ou de l'enlever.
-3. **Placer** : onglet *Texte* pour glisser le mot, *Image* pour recadrer et zoomer, *Pinceau* pour
-   corriger ce qui passe devant (« Mettre devant » / « Mettre derrière »).
-4. **Ambiance** : Éclat (par défaut), Ciné, Rêve, Nuit, Or, Naturel, avec les réglages fins
-   (lumière, contraste, couleurs, chaleur, relief, netteté, lueur, vignette, teinte ciné).
+2. **Taper le mot.** Il se place seul, toujours au même endroit (centré, tiers haut). L'étoile se loge dans la
+   première lettre qui a un creux ; les pastilles permettent de choisir une autre lettre ou de l'enlever.
+3. **Cadrer l'image** sous le mot (onglet *Image*), corriger le détourage au *Pinceau* si besoin.
+4. **Retouche de l'image** : un style de lumière (*Lumineux* ou *Dramatique*, proposé d'après l'image) et
+   cinq niveaux, de *Brut* à *Extrême*. Les réglages fins restent accessibles.
 5. **Exporter la miniature** : JPG 1280 × 720 sous 2 Mo (limite YouTube), ou PNG.
 
 L'aperçu « Dans le fil YouTube » montre la miniature à la taille réelle du fil, avec la durée en bas à droite.
 
+## La retouche
+
+Ce n'est pas un filtre posé sur l'image : chaque image est mesurée (point noir, point blanc, médiane,
+saturation moyenne, couleur des lumières par rapport aux ombres) et le dosage de chaque niveau en découle.
+Le calcul se fait en OKLab (clarté, chroma, teinte perceptuelles) :
+
+- **tonalité** : étirement entre les points noir et blanc mesurés, ombres débouchées (Lumineux) ou noirs
+  profonds et contraste (Dramatique) ;
+- **couleurs** : vibrance qui ménage les gris et le déjà saturé, réglages par famille de teintes (bleus plus
+  profonds, jaunes plus lumineux, orange retenu pour la peau) ;
+- **contraste des couleurs** : chaque pixel s'écarte de la teinte moyenne de son voisinage et de l'image, et
+  les lumières sont poussées vers la couleur de la lumière de la scène, les ombres vers son opposé. La palette
+  s'ouvre sans dominante imposée ; les gris et les noirs restent neutres ;
+- **sujet** : grâce au détourage, le sujet est éclairci et détaillé, le fond retenu ;
+- ce qui sort du gamut est ramené vers le gris de même clarté, jamais écrêté.
+
+Limite à connaître : l'outil retravaille les pixels existants. Il ne redessine pas l'image (ajouter du
+feuillage, des rayons, des détails) comme le fait une IA générative.
+
+Si la vue le permet, le bouton **Faire régler par Claude** envoie l'image à Claude, qui choisit le dosage
+de chaque teinte et l'explique en une phrase.
+
 ## Le lettrage
 
-Police **Anton** (Google Fonts), retravaillée à chaque rendu pour coller aux miniatures de référence :
-angles arrondis et graisse renforcée (flou gaussien + seuil sur le mot entier), légère courbure
-(bords un peu plus hauts que le centre), dégradé blanc qui prend un reflet de la couleur de la scène,
-ombre portée douce et ombre du sujet sur les lettres. L'étoile est découpée après avoir bouché le creux
-de la lettre ; elle est réduite automatiquement tant qu'elle déborderait du contour.
+Police **Anton** (Google Fonts), travaillée pour coller aux miniatures de référence (« MENSONGE », « TOI ») :
+
+- **massif** : le mot vise 88 % de la largeur ou 60 % de la hauteur ; un mot court est élargi jusqu'à 76 % ;
+- **gras à angles vifs** : contour ajouté en onglet (les creux deviennent des fentes), lettres resserrées ;
+- **incurvé** : une arche (le bas remonte au centre, les lettres des bords descendent plus bas), le haut à
+  peine bombé, puis un léger évasement vers le bas ;
+- **position fixe** : centré en largeur, dans le tiers haut de l'image ;
+- étoile à quatre branches découpée après avoir bouché le creux de la lettre, réduite tant qu'elle déborde ;
+- ombre portée, ombre du sujet sur les lettres, halo lumineux en option.
 
 ## Fichiers
 
