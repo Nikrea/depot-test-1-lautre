@@ -10,13 +10,19 @@ Page publiée : https://claude.ai/artifact/TkmFJYUKrmxT6Wh4JWoufa
 
 1. **Choisir une image** (ou la glisser / la coller). Le sujet est détouré automatiquement par une IA qui
    tourne dans le navigateur : l'image ne quitte pas l'appareil. Le modèle (56 Mo) se télécharge au premier
-   détourage, puis l'analyse prend 10 à 30 s.
+   détourage, puis l'analyse prend 20 à 60 s (deux passes).
 2. **Taper le mot.** Il se place seul, toujours au même endroit (centré, à mi-hauteur). L'étoile se loge dans la
    première lettre qui a un creux ; les pastilles permettent de choisir une autre lettre ou de l'enlever.
 3. **Cadrer l'image** sous le mot (onglet *Image*), corriger le détourage au *Pinceau* si besoin.
 4. **Retouche de l'image** : un style de lumière (*Lumineux* ou *Dramatique*, proposé d'après l'image) et
-   cinq niveaux, de *Brut* à *Extrême*. Les réglages fins restent accessibles.
-5. **Exporter la miniature** : JPG 1280 × 720 sous 2 Mo (limite YouTube), ou PNG.
+   cinq niveaux : *Brut, Doux, Équilibré, Vif, Intense*. Les réglages fins restent accessibles.
+5. **Exporter** : *Exporter en 4K* (3840 × 2160, la résolution que YouTube recommande ; envoi depuis un
+   ordinateur, limite 50 Mo) ou *Version téléphone* (1920 × 1080, moins de 2 Mo : la limite de YouTube depuis
+   un téléphone). L'aperçu se travaille en 1280 × 720 ; à l'export, toute la miniature est recalculée à la
+   taille demandée.
+
+Le travail en cours est gardé sur l'appareil (image et détourage dans IndexedDB, cadrage et réglages dans
+localStorage) : si la page se recharge, il revient tel quel. *Repartir de l'exemple* l'efface.
 
 L'aperçu « Dans le fil YouTube » montre la miniature à la taille réelle du fil, avec la durée en bas à droite.
 
@@ -26,15 +32,20 @@ Ce n'est pas un filtre posé sur l'image : chaque image est mesurée (point noir
 saturation moyenne, couleur des lumières par rapport aux ombres) et le dosage de chaque niveau en découle.
 Le calcul se fait en OKLab (clarté, chroma, teinte perceptuelles) :
 
-- **tonalité** : étirement entre les points noir et blanc mesurés, ombres débouchées (Lumineux) ou noirs
-  profonds et contraste (Dramatique) ;
+- **tonalité** : une partie seulement de l'écart aux points noir et blanc mesurés est reprise, puis les ombres
+  et les hautes lumières sont comprimées en douceur (genou) : jamais de noir bouché ni de blanc brûlé, même
+  curseurs à fond. « Lumière » agit sur les tons moyens ;
 - **couleurs** : vibrance qui ménage les gris et le déjà saturé, réglages par famille de teintes (bleus plus
   profonds, jaunes plus lumineux, orange retenu pour la peau) ;
 - **contraste des couleurs** : chaque pixel s'écarte de la teinte moyenne de son voisinage et de l'image, et
   les lumières sont poussées vers la couleur de la lumière de la scène, les ombres vers son opposé. La palette
   s'ouvre sans dominante imposée ; les gris et les noirs restent neutres ;
 - **sujet** : grâce au détourage, le sujet est éclairci et détaillé, le fond retenu ;
-- ce qui sort du gamut est ramené vers le gris de même clarté, jamais écrêté.
+- **saturation retenue** : le dosage tient compte des couleurs les plus vives de l'image (une image déjà vive
+  n'est presque pas poussée) et, à l'approche de la limite de l'écran, la couleur est ramenée progressivement
+  vers le gris de même clarté : les aplats restent modelés ;
+- le relief et la netteté ignorent les très petits écarts (bruit, blocs de compression) et sont plafonnés
+  (pas de halo).
 
 Limite à connaître : l'outil retravaille les pixels existants. Il ne redessine pas l'image (ajouter du
 feuillage, des rayons, des détails) comme le fait une IA générative.
@@ -61,7 +72,8 @@ Le rendu suit les planches :
   aussi : négative, elle donne le nœud papillon de « NOTRE FUTUR » ; positive, l'arc de « PÈRE » ;
 - **étoile** : une étincelle à quatre branches posée sur la fente de la lettre. Elle va dans le O ; sans O,
   dans le premier A ou R ; sinon dans la première lettre à creux ;
-- **position fixe** : centré, à mi-hauteur (réglable), avec ombre portée et halo en option.
+- **position fixe** : centré, à mi-hauteur (réglable), avec ombre portée (couleur au choix, noire par défaut)
+  et halo en option.
 
 Pour régénérer la police (et la réembarquer dans `index.html`) :
 
@@ -84,7 +96,9 @@ python3 miniatures/tools/build_font.py
 ## Modèle de détourage
 
 IS-Net « general use » (DIS, licence Apache-2.0) via ONNX Runtime Web 1.17.3, exécuté dans un worker
-(WASM, un fil). Si le navigateur interdit le WebAssembly, l'outil essaie la carte graphique (WebGL),
+(WASM, un fil). Deux passes : l'image entière, puis un zoom sur le sujet. La première donne le cœur du sujet,
+la seconde ses bords ; le contour est ensuite calé sur les vrais bords de l'image (filtre guidé), les zones
+hésitantes sont tranchées et les îlots retirés, pour éviter tout voile à moitié transparent autour du sujet. Si le navigateur interdit le WebAssembly, l'outil essaie la carte graphique (WebGL),
 puis bascule sur le pinceau. Pour régénérer `model/` avant une nouvelle publication :
 
 ```bash
