@@ -51,7 +51,8 @@ blocs très lourds, fentes fines à bouts ronds, encoches, petits angles arrondi
   les accents aigu, grave et circonflexe, l'apostrophe ;
 - **lettres construites** avec le même vocabulaire : C G J K Q W X Y Z, les chiffres, la ponctuation, le tréma,
   la cédille, Œ et Æ (le G reprend celui de la miniature « MENSONGE ») ;
-- crénage « L' » et « 'A » relevé sur « L'ANTIHÉROS ».
+- l'apostrophe est celle de la planche réduite à 60 %, avec du blanc de chaque côté ; après un L elle se pose
+  au-dessus du pied, et le A qui suit se rapproche.
 
 Le rendu suit les planches :
 

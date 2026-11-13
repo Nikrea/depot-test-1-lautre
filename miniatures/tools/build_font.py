@@ -279,14 +279,17 @@ def all_glyphs():
 
 
 # ---------------------------------------------------------------- vectorisation et police
-def outline(img):
+SIDE = {"'": 16, '’': 16, '"': 16}     # blanc supplémentaire de chaque côté (px), pour que l'apostrophe respire
+
+
+def outline(img, side=0):
     """Contours de Bézier (unités de police, y vers le haut) d'une lettre en image."""
     b = cv2.GaussianBlur(img, (0, 0), 1.6) > .5
     ys, xs = np.where(b); x0 = xs.min()
     pl = potrace.Bitmap(~b).trace(  # la bibliothèque inverse : on lui donne le fond
         turdsize=30, turnpolicy=potrace.POTRACE_TURNPOLICY_MINORITY, alphamax=1.0, opticurve=True, opttolerance=.35)
     def P(p):
-        return ((p.x - x0) * UNITS + GAP / 2 * UNITS, (PAD + CAP - p.y) * UNITS)
+        return ((p.x - x0 + side) * UNITS + GAP / 2 * UNITS, (PAD + CAP - p.y) * UNITS)
     contours = []
     for c in pl:
         rec = RecordingPen(); rec.moveTo(P(c.start_point))
@@ -306,7 +309,7 @@ def outline(img):
         depth = sum(1 for r2, a2, p2 in contours if r2 is not rec and abs(a2) > abs(area) and cv2.pointPolygonTest(np.array(p2, np.float32), (float(px), float(py)), False) > 0)
         want_pos = depth % 2 == 0
         out.append((rec, (area > 0) != want_pos))
-    width = (xs.max() + 1 - x0 + GAP) * UNITS
+    width = (xs.max() + 1 - x0 + GAP + 2 * side) * UNITS
     return out, width
 
 
@@ -324,11 +327,11 @@ def build():
     for name in ('.notdef', 'space'):
         cs[name] = T2CharStringPen(metrics[name][0], None).getCharString()
     for ch in sorted(glyphs):
-        n = gname(ch); contours, width = outline(glyphs[ch])
+        n = gname(ch); contours, width = outline(glyphs[ch], SIDE.get(ch, 0))
         pen = T2CharStringPen(int(round(width)), None)
         for rec, rev in contours:
             rec.replay(ReverseContourPen(pen) if rev else pen)
-        cs[n] = pen.getCharString(); metrics[n] = (int(round(width)), int(round(GAP / 2 * UNITS)))
+        cs[n] = pen.getCharString(); metrics[n] = (int(round(width)), int(round((GAP / 2 + SIDE.get(ch, 0)) * UNITS)))
         order.append(n); cmap[ord(ch)] = n
         if ch.isalpha() and ch.lower() != ch and len(ch.lower()) == 1:
             cmap[ord(ch.lower())] = n          # les minuscules donnent les mêmes capitales
@@ -341,15 +344,23 @@ def build():
     fb.setupNameTable({'familyName': 'Atelier Etoile', 'styleName': 'Regular'})
     fb.setupOS2(sTypoAscender=asc, sTypoDescender=desc, usWinAscent=asc, usWinDescent=-desc, sCapHeight=700, sxHeight=700)
     fb.setupPost()
-    # crénage relevé sur « L'ANTIHÉROS » : l'apostrophe se loge au-dessus du pied du L et contre le haut du A
-    _, _, main, extra = G._seg('lantiheros')
-    k1 = int(round((extra[0]['x0'] - main[0]['x1'] - GAP) * UNITS)); k2 = int(round((main[1]['x0'] - extra[0]['x1'] - GAP) * UNITS))
+    # crénage de l'apostrophe : après un L, elle se pose au-dessus du pied, au milieu du vide entre le fût du L
+    # et le flanc incliné du A qui suit ; devant un A, la lettre se rapproche (son haut est en retrait)
+    ink = lambda g: np.where((g > .5).any(0))[0]
+    row = lambda g, y: np.where(g[PAD + y] > .5)[0]
+    L, A, Q = glyphs['L'], glyphs['A'], glyphs["'"]
+    wl, wq, side = ink(L).max() + 1, ink(Q).max() + 1, SIDE["'"]
+    stem = row(L, 300).max() + 1                       # bord droit du fût du L
+    a_in = row(A, int(np.where((Q > .5).any(1))[0].max() - PAD) // 2).min()   # retrait du A à mi-hauteur de l'apostrophe
+    q0 = (stem + wl + GAP + a_in) / 2 - wq / 2         # position de l'apostrophe, depuis le bord gauche du L
+    k1 = int(round((q0 - (wl + GAP + side)) * UNITS))
+    k2 = int(round(((wl + GAP) - (q0 + wq) - GAP - side) * UNITS))
     fea = 'languagesystem DFLT dflt; languagesystem latn dflt;\nfeature kern {\n'
     for q in ('quotesingle', 'quoteright'):
-        fea += f'  pos L {q} {k1};\n  pos {q} [A uni00C0 uni00C2 uni00C4] {k2};\n'
+        fea += f'  pos L {q} {k1};\n  pos {q} [A uni00C0 uni00C2 uni00C4 uni00C6] {k2};\n'
     fea += '} kern;\n'
     addOpenTypeFeaturesFromString(fb.font, fea)
-    print('crénage L-apostrophe', k1, 'apostrophe-A', k2)
+    print('crénage L-apostrophe', k1, 'apostrophe-A', k2, '| apostrophe', wq, 'px de large pour 1000 de capitale')
     os.makedirs(OUT, exist_ok=True)
     fb.save(os.path.join(OUT, 'AtelierEtoile.otf'))
     fb.font.flavor = 'woff2'; fb.font.save(os.path.join(OUT, 'AtelierEtoile.woff2'))

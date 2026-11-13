@@ -123,13 +123,22 @@ def traced_mark(kind):
     return out, (s['x0'] + s['x1']) / 2 - (c['x0'] + c['x1']) / 2
 
 
-def traced_apostrophe():
+APOSTROPHE = .6     # l'apostrophe de la planche, réduite : à sa taille d'origine elle serre trop ses voisines
+
+
+def traced_apostrophe(scale=APOSTROPHE):
     img, lab, main, extra = _seg('lantiheros')
     s = extra[0]
     out = canvas(s['x1'] - s['x0'])
     m = (lab[:, s['x0']:s['x1']] == s['i'])
     out[:] = np.where(ndi.binary_dilation(m, iterations=3), img[:, s['x0']:s['x1']], 0)
-    return out
+    if scale == 1:
+        return out
+    ys = np.where(out > .5)[0]
+    small = cv2.resize(out[PAD:ys.max() + 6], None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+    o = canvas(small.shape[1])
+    o[PAD:PAD + small.shape[0]] = small          # le haut reste aligné sur le haut des capitales
+    return o
 
 
 # ---------------------------------------------------------------- outils de construction
