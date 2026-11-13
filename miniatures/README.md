@@ -11,7 +11,7 @@ Page publiée : https://claude.ai/artifact/TkmFJYUKrmxT6Wh4JWoufa
 1. **Choisir une image** (ou la glisser / la coller). Le sujet est détouré automatiquement par une IA qui
    tourne dans le navigateur : l'image ne quitte pas l'appareil. Le modèle (56 Mo) se télécharge au premier
    détourage, puis l'analyse prend 10 à 30 s.
-2. **Taper le mot.** Il se place seul, toujours au même endroit (centré, tiers haut). L'étoile se loge dans la
+2. **Taper le mot.** Il se place seul, toujours au même endroit (centré, à mi-hauteur). L'étoile se loge dans la
    première lettre qui a un creux ; les pastilles permettent de choisir une autre lettre ou de l'enlever.
 3. **Cadrer l'image** sous le mot (onglet *Image*), corriger le détourage au *Pinceau* si besoin.
 4. **Retouche de l'image** : un style de lumière (*Lumineux* ou *Dramatique*, proposé d'après l'image) et
@@ -44,15 +44,30 @@ de chaque teinte et l'explique en une phrase.
 
 ## Le lettrage
 
-Police **Anton** (Google Fonts), travaillée pour coller aux miniatures de référence (« MENSONGE », « TOI ») :
+La police est celle de la chaîne, **reconstruite d'après les planches de référence** (`font/refs/`) :
+blocs très lourds, fentes fines à bouts ronds, encoches, petits angles arrondis.
 
-- **massif** : le mot vise 88 % de la largeur ou 60 % de la hauteur ; un mot court est élargi jusqu'à 76 % ;
-- **gras à angles vifs** : contour ajouté en onglet (les creux deviennent des fentes), lettres resserrées ;
-- **incurvé** : une arche (le bas remonte au centre, les lettres des bords descendent plus bas), le haut à
-  peine bombé, puis un léger évasement vers le bas ;
-- **position fixe** : centré en largeur, dans le tiers haut de l'image ;
-- étoile à quatre branches découpée après avoir bouché le creux de la lettre, réduite tant qu'elle déborde ;
-- ombre portée, ombre du sujet sur les lettres, halo lumineux en option.
+- **Lettres décalquées** sur les planches, après redressement de l'arche : A B D E F H I L M N O P R S T U V,
+  les accents aigu, grave et circonflexe, l'apostrophe ;
+- **lettres construites** avec le même vocabulaire : C G J K Q W X Y Z, les chiffres, la ponctuation, le tréma,
+  la cédille, Œ et Æ (le G reprend celui de la miniature « MENSONGE ») ;
+- crénage « L' » et « 'A » relevé sur « L'ANTIHÉROS ».
+
+Le rendu suit les planches :
+
+- **taille** : le mot vise 59 % de la hauteur de l'image ou 88 % de sa largeur (jusqu'à 94,5 % pour un mot long) ;
+- **arche** : haut droit, bas en arc (les lettres des bords descendent plus bas). L'arche du haut se règle
+  aussi : négative, elle donne le nœud papillon de « NOTRE FUTUR » ; positive, l'arc de « PÈRE » ;
+- **étoile** : une étincelle à quatre branches posée sur la fente de la lettre. Elle va dans le O ; sans O,
+  dans le premier A ou R ; sinon dans la première lettre à creux ;
+- **position fixe** : centré, à mi-hauteur (réglable), avec ombre portée et halo en option.
+
+Pour régénérer la police (et la réembarquer dans `index.html`) :
+
+```bash
+pip install numpy opencv-python-headless scipy fonttools potracer brotli
+python3 miniatures/tools/build_font.py
+```
 
 ## Fichiers
 
@@ -60,6 +75,9 @@ Police **Anton** (Google Fonts), travaillée pour coller aux miniatures de réf�
 |---|---|
 | `index.html` | toute l'application (publiée telle quelle comme artefact) |
 | `sample/lune.jpg`, `sample/lune-masque.png` | l'exemple d'ouverture (photo NASA Apollo 11, domaine public) et son détourage |
+| `font/AtelierEtoile.otf`, `.woff2` | la police reconstruite (71 caractères) ; `font/specimen.png` la montre en entier |
+| `font/refs/` | les planches de référence d'où viennent les lettres |
+| `tools/build_font.py`, `tools/font_glyphs.py` | fabrication de la police |
 | `tools/build_model.py` | prépare le modèle de détourage dans `model/` (non versionné, 56 Mo) |
 
 ## Modèle de détourage
